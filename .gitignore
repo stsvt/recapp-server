@@ -1,0 +1,13 @@
+node_modules/
+
+.env
+.env.*
+*.env
+
+/data/*.json
+
+/dist/
+
+.vscode/
+
+**.idea/**
