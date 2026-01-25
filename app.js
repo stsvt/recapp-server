@@ -3,6 +3,7 @@ const morgan = require('morgan');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
+const userRouter = require('./routes/userRoutes');
 
 const app = express();
 
@@ -14,9 +15,7 @@ app.use(express.json());
 
 app.set('query parser', 'extended');
 
-app.get('/', (req, res) => {
-  res.status(200).json({ status: 'success', message: 'Hello World!' });
-});
+app.use('/api/v1/users', userRouter);
 
 app.use((req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
