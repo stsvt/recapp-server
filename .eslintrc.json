@@ -22,5 +22,10 @@
     "no-unused-vars": ["error", { "argsIgnorePattern": "req|res|next|val" }],
     "linebreak-style": "off",
     "eol-last": "off"
+  },
+  "settings": {
+    "node": {
+      "version": "detect"
+    }
   }
 }

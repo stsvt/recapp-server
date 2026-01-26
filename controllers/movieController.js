@@ -16,7 +16,14 @@ exports.getMovieGenres = (req, res, next) => {
 };
 
 exports.getAllMovies = catchAsync(async (req, res, next) => {
-  const cacheKey = `movies:${JSON.stringify(req.query)}`;
+  const sortedQuery = Object.keys(req.query)
+    .sort()
+    .reduce((acc, key) => {
+      acc[key] = req.query[key];
+      return acc;
+    }, {});
+
+  const cacheKey = `movies:${JSON.stringify(sortedQuery)}`;
   const cachedMovies = await client.get(cacheKey);
 
   if (cachedMovies) {
@@ -28,7 +35,13 @@ exports.getAllMovies = catchAsync(async (req, res, next) => {
     });
   }
 
-  const url = `${process.env.TMDB_BASIC_URL}discover/movie?with_genres=${req.query.with_genres}`;
+  const tmdbParams = new URLSearchParams({
+    language: 'uk-UA',
+    include_adult: false,
+    ...sortedQuery,
+  });
+
+  const url = `${process.env.TMDB_BASIC_URL}discover/movie?${tmdbParams}`;
 
   const response = await fetch(url, {
     method: 'GET',
