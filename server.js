@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+require('./utils/redisClient');
 
 process.on('uncaughtException', (err) => {
   console.log(err.name, err.message);
