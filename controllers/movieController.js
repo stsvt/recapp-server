@@ -36,12 +36,11 @@ exports.getAllMovies = catchAsync(async (req, res, next) => {
   }
 
   const tmdbParams = new URLSearchParams({
-    language: 'uk-UA',
     include_adult: false,
     ...sortedQuery,
   });
 
-  const url = `${process.env.TMDB_BASIC_URL}discover/movie?${tmdbParams}`;
+  const url = `${process.env.TMDB_BASIC_URL}discover/movie?${tmdbParams}&language=uk-UA`;
 
   const response = await fetch(url, {
     method: 'GET',
@@ -54,7 +53,133 @@ exports.getAllMovies = catchAsync(async (req, res, next) => {
 
   const data = await response.json();
 
-  await client.set(cacheKey, JSON.stringify(data));
+  const ONE_WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
+
+  await client.setEx(cacheKey, ONE_WEEK_IN_SECONDS, JSON.stringify(data));
+
+  console.log('GETTING from external API');
+  res.status(200).json({ status: 'success', data: { movies: data } });
+});
+
+exports.getMovieById = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  const cacheKey = `movies:details:${id}`;
+  const cachedMovie = await client.get(cacheKey);
+
+  if (cachedMovie) {
+    console.log('GETTING from CACHE');
+
+    return res.status(200).json({
+      status: 'success',
+      source: 'cache',
+      data: { movie: JSON.parse(cachedMovie) },
+    });
+  }
+
+  const url = `${process.env.TMDB_BASIC_URL}movie/${id}?append_to_response=credits,videos,recommendations&language=uk-UA`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}` },
+  });
+
+  if (!response.ok) {
+    return next(new AppError('Something went wrong with fetching movie', 400));
+  }
+
+  const data = await response.json();
+
+  await client.setEx(cacheKey, 21600, JSON.stringify(data));
+
+  console.log('GETTING from external API');
+  res.status(200).json({ status: 'success', data: { movie: data } });
+});
+
+exports.getUpcomingMovies = catchAsync(async (req, res, next) => {
+  const page = req.query.page || 1;
+
+  const cacheKey = `movies:upcoming:page:${page}`;
+  const cachedMovies = await client.get(cacheKey);
+
+  if (cachedMovies) {
+    console.log('GETTING from CACHE');
+
+    return res.status(200).json({
+      status: 'success',
+      source: 'cache',
+      data: { movies: JSON.parse(cachedMovies) },
+    });
+  }
+
+  const tmdbParams = new URLSearchParams({
+    language: 'uk-UA',
+    page: page,
+    region: 'UA',
+  });
+
+  const url = `${process.env.TMDB_BASIC_URL}movie/upcoming?${tmdbParams}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}` },
+  });
+
+  if (!response.ok) {
+    return next(
+      new AppError('Something went wrong with fetching upcoming movies', 400),
+    );
+  }
+
+  const data = await response.json();
+
+  await client.setEx(cacheKey, 86400, JSON.stringify(data));
+
+  console.log('GETTING from external API');
+  res.status(200).json({ status: 'success', data: { movies: data } });
+});
+
+exports.getNowPlayingMovies = catchAsync(async (req, res, next) => {
+  const page = req.query.page || 1;
+
+  const cacheKey = `movies:now_playing:page:${page}`;
+  const cachedMovies = await client.get(cacheKey);
+
+  if (cachedMovies) {
+    console.log('GETTING from CACHE');
+
+    return res.status(200).json({
+      status: 'success',
+      source: 'cache',
+      data: { movies: JSON.parse(cachedMovies) },
+    });
+  }
+
+  const tmdbParams = new URLSearchParams({
+    language: 'uk-UA',
+    page: page,
+    region: 'UA',
+  });
+
+  const url = `${process.env.TMDB_BASIC_URL}movie/now_playing?${tmdbParams}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}` },
+  });
+
+  if (!response.ok) {
+    return next(
+      new AppError(
+        'Something went wrong with fetching now playing movies',
+        400,
+      ),
+    );
+  }
+
+  const data = await response.json();
+
+  await client.setEx(cacheKey, 86400, JSON.stringify(data));
 
   console.log('GETTING from external API');
   res.status(200).json({ status: 'success', data: { movies: data } });
