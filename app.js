@@ -2,6 +2,7 @@ const express = require('express');
 const morgan = require('morgan');
 
 const AppError = require('./utils/appError');
+const setupSwagger = require('./utils/swagger');
 const globalErrorHandler = require('./controllers/errorController');
 const userRouter = require('./routes/userRoutes');
 const movieRouter = require('./routes/movieRoutes');
@@ -16,6 +17,8 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json());
 
 app.set('query parser', 'extended');
+
+setupSwagger(app);
 
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/movies', movieRouter);

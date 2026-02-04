@@ -21,7 +21,8 @@
     "prefer-destructuring": ["error", { "object": true, "array": false }],
     "no-unused-vars": ["error", { "argsIgnorePattern": "req|res|next|val" }],
     "linebreak-style": "off",
-    "eol-last": "off"
+    "eol-last": "off",
+    "import/no-extraneous-dependencies": "off"
   },
   "settings": {
     "node": {
