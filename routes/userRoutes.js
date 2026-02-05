@@ -15,11 +15,11 @@ const router = express.Router();
  * @swagger
  * /api/v1/users:
  *   get:
- *     summary: Get all users
+ *     summary: Отримати всіх користувачів
  *     tags: [Users]
  *     responses:
  *       200:
- *         description: List of all users
+ *         description: Список всіх користувачів
  *         content:
  *           application/json:
  *             schema:
@@ -27,8 +27,10 @@ const router = express.Router();
  *               properties:
  *                 status:
  *                   type: string
+ *                   example: success
  *                 results:
  *                   type: integer
+ *                   example: 10
  *                 data:
  *                   type: object
  *                   properties:
@@ -36,6 +38,16 @@ const router = express.Router();
  *                       type: array
  *                       items:
  *                         type: object
+ *                         properties:
+ *                           name:
+ *                             type: string
+ *                             example: John Doe
+ *                           email:
+ *                             type: string
+ *                             example: john@example.com
+ *                           role:
+ *                             type: string
+ *                             example: user
  */
 router.get('/', userController.getAllUsers);
 
@@ -43,7 +55,7 @@ router.get('/', userController.getAllUsers);
  * @swagger
  * /api/v1/users/signup:
  *   post:
- *     summary: Register a new user
+ *     summary: Зареєструвати нового користувача
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -59,15 +71,19 @@ router.get('/', userController.getAllUsers);
  *             properties:
  *               name:
  *                 type: string
+ *                 example: John Doe
  *               email:
  *                 type: string
+ *                 example: john@example.com
  *               password:
  *                 type: string
+ *                 example: password123
  *               passwordConfirm:
  *                 type: string
+ *                 example: password123
  *     responses:
  *       201:
- *         description: User registered successfully
+ *         description: Користувач зареєстрований успішно
  *         content:
  *           application/json:
  *             schema:
@@ -75,13 +91,25 @@ router.get('/', userController.getAllUsers);
  *               properties:
  *                 status:
  *                   type: string
+ *                   example: success
  *                 token:
  *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  *                 data:
  *                   type: object
  *                   properties:
  *                     user:
  *                       type: object
+ *                       properties:
+ *                         name:
+ *                           type: string
+ *                           example: John Doe
+ *                         email:
+ *                           type: string
+ *                           example: john@example.com
+ *                         role:
+ *                           type: string
+ *                           example: user
  *       400:
  *         description: Bad request
  */
@@ -91,7 +119,7 @@ router.post('/signup', authController.signup);
  * @swagger
  * /api/v1/users/login:
  *   post:
- *     summary: User login
+ *     summary: Вхід користувача
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -105,11 +133,13 @@ router.post('/signup', authController.signup);
  *             properties:
  *               email:
  *                 type: string
+ *                 example: john@example.com
  *               password:
  *                 type: string
+ *                 example: password123
  *     responses:
  *       200:
- *         description: Login successful
+ *         description: Вхід успішний
  *         content:
  *           application/json:
  *             schema:
@@ -117,8 +147,10 @@ router.post('/signup', authController.signup);
  *               properties:
  *                 status:
  *                   type: string
+ *                   example: success
  *                 token:
  *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  *       401:
  *         description: Incorrect email or password
  */
