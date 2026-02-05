@@ -14,7 +14,7 @@ const router = express.Router();
  * @swagger
  * /api/v1/person/{id}/works:
  *   get:
- *     summary: Get works of a director
+ *     summary: Отримати роботи режисера
  *     tags: [People]
  *     parameters:
  *       - in: path
@@ -25,7 +25,7 @@ const router = express.Router();
  *         description: Person ID
  *     responses:
  *       200:
- *         description: List of works
+ *         description: Список робіт
  *         content:
  *           application/json:
  *             schema:
@@ -33,6 +33,7 @@ const router = express.Router();
  *               properties:
  *                 status:
  *                   type: string
+ *                   example: success
  *                 data:
  *                   type: object
  *                   properties:
@@ -40,7 +41,69 @@ const router = express.Router();
  *                       type: array
  *                       items:
  *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                             example: 550
+ *                           title:
+ *                             type: string
+ *                             example: "Fight Club"
+ *                           media_type:
+ *                             type: string
+ *                             example: "movie"
+ *                           poster_path:
+ *                             type: string
+ *                             example: "/path/to/poster.jpg"
+ *                           release_date:
+ *                             type: string
+ *                             format: date
+ *                             example: "1999-10-15"
+ *                           vote_average:
+ *                             type: number
+ *                             format: float
+ *                             example: 8.4
  */
 router.get('/:id/works', personController.getDirectorWorks);
+
+/**
+ * @swagger
+ * /api/v1/person/{id}/movies:
+ *   get:
+ *     summary: Отримати фільми актора
+ *     tags: [People]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID актора в TMDB
+ *     responses:
+ *       200:
+ *         description: Список фільмів та серіалів
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       title:
+ *                         type: string
+ *                         example: "Fight Club"
+ *                       character:
+ *                         type: string
+ *                         example: "Tyler Durden"
+ *                       media_type:
+ *                         type: string
+ *                         example: "movie"
+ */
+router.get('/:id/movies', personController.getActorMovies);
 
 module.exports = router;
