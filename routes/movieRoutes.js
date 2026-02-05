@@ -106,6 +106,78 @@ router.get('/upcoming', movieController.getUpcomingMovies);
 
 /**
  * @swagger
+ * /api/v1/movies/search:
+ *   get:
+ *     summary: Пошук фільмів
+ *     tags: [Movies]
+ *     parameters:
+ *       - in: query
+ *         name: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Пошуковий запит (назва фільму)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Номер сторінки
+ *     responses:
+ *       200:
+ *         description: Результати пошуку
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     results:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: integer
+ *                           example: 1
+ *                         results:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: integer
+ *                                 example: 27205
+ *                               title:
+ *                                 type: string
+ *                                 example: "Inception"
+ *                               poster_path:
+ *                                 type: string
+ *                                 example: "/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg"
+ *                               release_date:
+ *                                 type: string
+ *                                 format: date
+ *                                 example: "2010-07-15"
+ *                               vote_average:
+ *                                 type: number
+ *                                 format: float
+ *                                 example: 8.364
+ *                         total_pages:
+ *                           type: integer
+ *                           example: 5
+ *                         total_results:
+ *                           type: integer
+ *                           example: 85
+ *       400:
+ *         description: Не вказано пошуковий запит
+ */
+router.get('/search', movieController.searchMovies);
+
+/**
+ * @swagger
  * /api/v1/movies/now_playing:
  *   get:
  *     summary: Отримати фільми, що зараз у прокаті

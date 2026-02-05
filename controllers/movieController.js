@@ -184,3 +184,51 @@ exports.getNowPlayingMovies = catchAsync(async (req, res, next) => {
   console.log('GETTING from external API');
   res.status(200).json({ status: 'success', data: { movies: data } });
 });
+
+exports.searchMovies = catchAsync(async (req, res, next) => {
+  const { query, page = 1 } = req.query;
+
+  if (!query) {
+    return next(new AppError('Please provide a search term', 400));
+  }
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const cacheKey = `search:${normalizedQuery}:page:${page}`;
+  const cachedResults = await client.get(cacheKey);
+
+  if (cachedResults) {
+    console.log(`Search "${query}" from CACHE`);
+    return res.status(200).json({
+      status: 'success',
+      source: 'cache',
+      data: { movies: JSON.parse(cachedResults) },
+    });
+  }
+
+  const tmdbParams = new URLSearchParams({
+    query: query,
+    page: page,
+    language: 'uk-UA',
+    include_adult: false,
+  });
+
+  const url = `${process.env.TMDB_BASIC_URL}search/movie?${tmdbParams}`;
+
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}` },
+  });
+
+  if (!response.ok) {
+    return next(new AppError('Failed to search movies', 400));
+  }
+
+  const data = await response.json();
+
+  await client.setEx(cacheKey, 3600, JSON.stringify(data));
+
+  console.log(`Search "${query}" from TMDB`);
+  res.status(200).json({
+    status: 'success',
+    data: { movies: data },
+  });
+});
