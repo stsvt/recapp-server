@@ -49,6 +49,63 @@ router.get('/genres', movieController.getMovieGenres);
 
 /**
  * @swagger
+ * /api/v1/movies/top-rated:
+ *   get:
+ *     summary: Отримати фільми з найвищим рейтингом
+ *     tags: [Movies]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Номер сторінки
+ *     responses:
+ *       200:
+ *         description: Список фільмів з найвищим рейтингом
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 results:
+ *                   type: integer
+ *                   example: 20
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     movies:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                             example: 278
+ *                           title:
+ *                             type: string
+ *                             example: "The Shawshank Redemption"
+ *                           poster_path:
+ *                             type: string
+ *                             example: "/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg"
+ *                           release_date:
+ *                             type: string
+ *                             format: date
+ *                             example: "1994-09-23"
+ *                           vote_average:
+ *                             type: number
+ *                             format: float
+ *                             example: 8.7
+ */
+router.get('/top-rated', movieController.getTopRatedMovies);
+
+/**
+ * @swagger
  * /api/v1/movies/upcoming:
  *   get:
  *     summary: Отримати фільми, що скоро вийдуть
