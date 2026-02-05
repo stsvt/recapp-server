@@ -96,6 +96,52 @@ exports.getMovieById = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: 'success', data: { movie: data } });
 });
 
+exports.getTopRatedMovies = catchAsync(async (req, res, next) => {
+  const page = req.query.page || 1;
+
+  const cacheKey = `movies:top_rated:page:${page}`;
+  const cachedMovies = await client.get(cacheKey);
+
+  if (cachedMovies) {
+    console.log('GETTING from CACHE');
+
+    return res.status(200).json({
+      status: 'success',
+      source: 'cache',
+      data: { movies: JSON.parse(cachedMovies) },
+    });
+  }
+
+  const tmdbParams = new URLSearchParams({
+    language: 'uk-UA',
+    page: page,
+    sort_by: 'vote_average.desc',
+    'vote_count.gte': '3000',
+    include_adult: false,
+  });
+
+  const url = `${process.env.TMDB_BASIC_URL}discover/movie?${tmdbParams}`;
+
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}` },
+  });
+
+  if (!response.ok) {
+    return next(new AppError('Failed to fetch top rated movies', 400));
+  }
+
+  const data = await response.json();
+
+  await client.setEx(cacheKey, 86400, JSON.stringify(data));
+
+  console.log('Top Rated from TMDB');
+
+  res.status(200).json({
+    status: 'success',
+    data: { movies: data },
+  });
+});
+
 exports.getUpcomingMovies = catchAsync(async (req, res, next) => {
   const page = req.query.page || 1;
 
