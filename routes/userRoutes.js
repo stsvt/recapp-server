@@ -254,6 +254,77 @@ router.patch(
 
 /**
  * @swagger
+ * /api/v1/users/updateMe:
+ *   patch:
+ *     summary: Оновлення даних поточного користувача
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: John Doe
+ *               email:
+ *                 type: string
+ *                 example: john@example.com
+ *               description:
+ *                 type: string
+ *                 example: "I love movies!"
+ *     responses:
+ *       200:
+ *         description: Дані користувача успішно оновлено
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         name:
+ *                           type: string
+ *                           example: John Doe
+ *                         email:
+ *                           type: string
+ *                           example: john@example.com
+ *                         role:
+ *                           type: string
+ *                           example: user
+ *       400:
+ *         description: Спроба оновити пароль через цей маршрут
+ */
+router.patch('/updateMe', authController.protect, userController.updateMe);
+
+/**
+ * @swagger
+ * /api/v1/users/deleteMe:
+ *   delete:
+ *     summary: Видалення (деактивація) поточного користувача
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       204:
+ *         description: Користувач успішно видалений (деактивований)
+ *       401:
+ *         description: Не авторизований
+ */
+router.delete('/deleteMe', authController.protect, userController.deleteMe);
+
+/**
+ * @swagger
  * /api/v1/users:
  *   get:
  *     summary: Отримати всіх користувачів
