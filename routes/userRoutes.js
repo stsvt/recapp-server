@@ -13,46 +13,6 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/v1/users:
- *   get:
- *     summary: Отримати всіх користувачів
- *     tags: [Users]
- *     responses:
- *       200:
- *         description: Список всіх користувачів
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 results:
- *                   type: integer
- *                   example: 10
- *                 data:
- *                   type: object
- *                   properties:
- *                     users:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           name:
- *                             type: string
- *                             example: John Doe
- *                           email:
- *                             type: string
- *                             example: john@example.com
- *                           role:
- *                             type: string
- *                             example: user
- */
-router.get('/', userController.getAllUsers);
-
-/**
- * @swagger
  * /api/v1/users/signup:
  *   post:
  *     summary: Зареєструвати нового користувача
@@ -156,6 +116,180 @@ router.post('/signup', authController.signup);
  */
 router.post('/login', authController.login);
 
+/**
+ * @swagger
+ * /api/v1/users/forgotPassword:
+ *   post:
+ *     summary: Відновлення паролю
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: john@example.com
+ *     responses:
+ *       200:
+ *         description: Токен для скидання паролю надіслано на пошту
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Token sent to email!
+ *       404:
+ *         description: Користувача з такою електронною адресою не знайдено
+ */
 router.post('/forgotPassword', authController.forgotPassword);
+
+/**
+ * @swagger
+ * /api/v1/users/resetPassword/{token}:
+ *   patch:
+ *     summary: Скидання паролю
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Токен скидання паролю
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *               - passwordConfirm
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 example: newpassword123
+ *               passwordConfirm:
+ *                 type: string
+ *                 example: newpassword123
+ *     responses:
+ *       200:
+ *         description: Пароль успішно змінено
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 token:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *       400:
+ *         description: Невірний токен або паролі не співпадають
+ */
 router.patch('/resetPassword/:token', authController.resetPassword);
+
+/**
+ * @swagger
+ * /api/v1/users/updateMyPassword:
+ *   patch:
+ *     summary: Оновлення паролю авторизованого користувача
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - passwordCurrent
+ *               - password
+ *               - passwordConfirm
+ *             properties:
+ *               passwordCurrent:
+ *                 type: string
+ *                 example: oldpassword123
+ *               password:
+ *                 type: string
+ *                 example: newpassword123
+ *               passwordConfirm:
+ *                 type: string
+ *                 example: newpassword123
+ *     responses:
+ *       200:
+ *         description: Пароль успішно оновлено
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 token:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *       401:
+ *         description: Невірний поточний пароль
+ */
+router.patch(
+  '/updateMyPassword',
+  authController.protect,
+  authController.updatePassword,
+);
+
+/**
+ * @swagger
+ * /api/v1/users:
+ *   get:
+ *     summary: Отримати всіх користувачів
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Список всіх користувачів
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 results:
+ *                   type: integer
+ *                   example: 10
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     users:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           name:
+ *                             type: string
+ *                             example: John Doe
+ *                           email:
+ *                             type: string
+ *                             example: john@example.com
+ *                           role:
+ *                             type: string
+ *                             example: user
+ */
+router.get('/', userController.getAllUsers);
+
 module.exports = router;
