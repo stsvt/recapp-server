@@ -50,6 +50,12 @@ schema.pre('save', async function () {
   this.confirmPassword = undefined;
 });
 
+schema.pre('save', async function () {
+  if (!this.isModified('password') || this.isNew) return;
+
+  this.passwordChangedAt = Date.now() - 1000;
+});
+
 schema.methods.correctPassword = async function (
   candidatePassword,
   userPassword,
