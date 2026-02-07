@@ -11,8 +11,10 @@ const AppError = require('./utils/appError');
 const setupSwagger = require('./utils/swagger');
 const globalErrorHandler = require('./controllers/errorController');
 const userRouter = require('./routes/userRoutes');
-const movieRouter = require('./routes/movieRoutes');
+const tmdbRouter = require('./routes/tmdbRoutes');
 const personRouter = require('./routes/personRoutes');
+const reviewRouter = require('./routes/reviewRoutes');
+const movieRouter = require('./routes/movieRoutes');
 
 const app = express();
 
@@ -47,8 +49,10 @@ app.set('query parser', 'extended');
 setupSwagger(app);
 
 app.use('/api/v1/users', userRouter);
-app.use('/api/v1/movies', movieRouter);
+app.use('/api/v1/tmdb', tmdbRouter);
 app.use('/api/v1/person', personRouter);
+app.use('/api/v1/reviews', reviewRouter);
+app.use('/api/v1/movies', movieRouter);
 
 app.use((req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
