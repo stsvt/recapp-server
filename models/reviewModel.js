@@ -27,6 +27,11 @@ const schema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    active: {
+      type: Boolean,
+      default: true,
+      select: false,
+    },
   },
   {
     toJSON: { virtuals: true },
@@ -39,6 +44,10 @@ schema.pre(/^find/, function () {
     path: 'user',
     select: 'name photo',
   });
+});
+
+schema.pre(/^find/, function () {
+  this.find({ active: { $ne: false } });
 });
 
 const Review = mongoose.model('Review', schema);
