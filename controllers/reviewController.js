@@ -63,3 +63,40 @@ exports.createReview = catchAsync(async (req, res, next) => {
 
   res.status(201).json({ status: 'success', data: { review: newReview } });
 });
+
+exports.deleteReview = catchAsync(async (req, res, next) => {
+  const { reviewId } = req.params;
+
+  await Review.findByIdAndUpdate(reviewId, { active: false });
+
+  res.status(204).json({ status: 'success', data: null });
+});
+
+exports.updateReview = catchAsync(async (req, res, next) => {
+  const { reviewId } = req.params;
+  const { review, rating } = req.body;
+
+  const reviewDoc = await Review.findById(reviewId);
+
+  if (!reviewDoc) {
+    return next(new AppError('No review found with that ID', 404));
+  }
+
+  if (reviewDoc.user._id.toString() !== req.user.id) {
+    return next(new AppError('You are not allowed to edit this review', 403));
+  }
+
+  if (review) {
+    reviewDoc.review = review;
+  }
+  if (rating) {
+    reviewDoc.rating = rating;
+  }
+
+  await reviewDoc.save();
+
+  res.status(200).json({
+    status: 'success',
+    data: { review: reviewDoc },
+  });
+});
