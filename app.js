@@ -15,6 +15,7 @@ const tmdbRouter = require('./routes/tmdbRoutes');
 const personRouter = require('./routes/personRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 const movieRouter = require('./routes/movieRoutes');
+const activityRouter = require('./routes/activityRoutes');
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use('/api/v1/tmdb', tmdbRouter);
 app.use('/api/v1/person', personRouter);
 app.use('/api/v1/reviews', reviewRouter);
 app.use('/api/v1/movies', movieRouter);
+app.use('/api/v1/activity', activityRouter);
 
 app.use((req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

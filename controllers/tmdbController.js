@@ -2,25 +2,11 @@ const fs = require('fs');
 const client = require('../utils/redisClient');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const { fetchMovieFromTMDB } = require('../utils/tmdbApi');
 
 const genres = JSON.parse(
   fs.readFileSync(`${__dirname}/../data/genres.json`, 'utf-8'),
 );
-
-exports.fetchMovieFromTMDB = async (id) => {
-  const url = `${process.env.TMDB_BASIC_URL}movie/${id}?append_to_response=credits,videos,recommendations&language=uk-UA`;
-
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: { Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}` },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch movie data from TMDB');
-  }
-
-  return await response.json();
-};
 
 exports.getMovieGenres = (req, res, next) => {
   try {
@@ -93,7 +79,7 @@ exports.getMovieById = catchAsync(async (req, res, next) => {
   }
 
   try {
-    const data = await exports.fetchMovieFromTMDB(id);
+    const data = await fetchMovieFromTMDB(id);
 
     await client.setEx(cacheKey, 21600, JSON.stringify(data));
 

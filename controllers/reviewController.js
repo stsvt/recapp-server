@@ -2,7 +2,7 @@ const catchAsync = require('../utils/catchAsync');
 const Review = require('../models/reviewModel');
 const Movie = require('../models/movieModel');
 const AppError = require('../utils/appError');
-const { fetchMovieFromTMDB } = require('./tmdbController');
+const { getOrCreateMovie } = require('../services/movieService');
 
 exports.getAllReviews = catchAsync(async (req, res, next) => {
   const tmdbId = req.params.movieId;
@@ -33,26 +33,7 @@ exports.createReview = catchAsync(async (req, res, next) => {
     return next(new AppError('Please provide review text and rating', 400));
   }
 
-  let movie = await Movie.findOne({ tmdbId: tmdbId });
-
-  if (!movie) {
-    try {
-      const tmdbData = await fetchMovieFromTMDB(tmdbId);
-
-      movie = await Movie.create({
-        tmdbId: tmdbData.id,
-        title: tmdbData.title,
-        releaseDate: tmdbData.release_date,
-        genres: tmdbData.genres.map((genre) => genre.name),
-        overview: tmdbData.overview,
-        posterPath: tmdbData.poster_path,
-      });
-    } catch (err) {
-      return next(
-        new AppError('Something went wrong with fetching movie', 400),
-      );
-    }
-  }
+  const movie = await getOrCreateMovie(tmdbId);
 
   const newReview = await Review.create({
     user: req.user._id,
