@@ -13,7 +13,10 @@ const router = express.Router();
 
 router.use(authController.protect);
 
-router.post('/', activityController.toggleActivity);
+router
+  .route('/')
+  .get(activityController.getUserActivities)
+  .post(activityController.toggleActivity);
 
 router.get('/status/:tmdbId', activityController.checkMovieStatus);
 

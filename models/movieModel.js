@@ -17,6 +17,16 @@ const schema = new mongoose.Schema({
     set: (value) => Math.round(value * 10) / 10,
   },
   ratingsQuantity: { type: Number, default: 0 },
+  likesCount: {
+    type: Number,
+    default: 0,
+    min: [0, 'Likes count cannot be negative'],
+  },
+  watchesCount: {
+    type: Number,
+    default: 0,
+    min: [0, 'Watches count cannot be negative'],
+  },
 });
 
 schema.virtual('reviews', {
