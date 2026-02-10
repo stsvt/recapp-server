@@ -11,12 +11,23 @@ const schema = new mongoose.Schema({
   releaseDate: { type: Date },
   overview: { type: String },
   genres: [{ type: String }],
+  runtime: { type: Number },
   ratingsAverage: {
     type: Number,
     default: 0,
     set: (value) => Math.round(value * 10) / 10,
   },
   ratingsQuantity: { type: Number, default: 0 },
+  likesCount: {
+    type: Number,
+    default: 0,
+    min: [0, 'Likes count cannot be negative'],
+  },
+  watchesCount: {
+    type: Number,
+    default: 0,
+    min: [0, 'Watches count cannot be negative'],
+  },
 });
 
 schema.virtual('reviews', {

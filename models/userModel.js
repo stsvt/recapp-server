@@ -39,6 +39,11 @@ const schema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user',
   },
+  totalWatchTime: {
+    type: Number,
+    default: 0,
+    min: [0, 'Total watch time cannot be negative'],
+  },
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,

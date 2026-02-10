@@ -252,6 +252,8 @@ router.patch(
   authController.updatePassword,
 );
 
+router.get('/me', authController.protect, userController.getMe);
+
 /**
  * @swagger
  * /api/v1/users/updateMe:
