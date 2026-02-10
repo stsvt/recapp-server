@@ -27,7 +27,7 @@ schema.index({ user: 1, movie: 1, activityType: 1 }, { unique: true });
 schema.pre(/^find/, function () {
   this.populate({
     path: 'movie',
-    select: 'title posterPath ratingsAverage releaseDate genres',
+    select: 'title posterPath ratingsAverage releaseDate genres runtime',
   });
 });
 

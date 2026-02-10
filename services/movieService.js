@@ -29,6 +29,7 @@ exports.getOrCreateMovie = async (tmdbId) => {
       genres: tmdbData.genres.map((genre) => genre.name),
       overview: tmdbData.overview,
       posterPath: tmdbData.poster_path,
+      runtime: tmdbData.runtime,
     },
     {
       new: true,

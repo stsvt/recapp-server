@@ -2,6 +2,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const UserMovieActivity = require('../models/userMovieActivityModel');
 const Movie = require('../models/movieModel');
+const User = require('../models/userModel');
 const { getOrCreateMovie } = require('../services/movieService');
 
 exports.getUserActivities = catchAsync(async (req, res, next) => {
@@ -62,6 +63,12 @@ exports.toggleActivity = catchAsync(async (req, res, next) => {
       },
     );
 
+    if (activityType === 'watched' && movie.runtime) {
+      await User.findByIdAndUpdate(userId, {
+        $inc: { totalWatchTime: -movie.runtime },
+      });
+    }
+
     message = `Movie removed from ${activityType} list`;
     isActive = false;
   } else {
@@ -74,6 +81,12 @@ exports.toggleActivity = catchAsync(async (req, res, next) => {
     await Movie.findByIdAndUpdate(movie._id, {
       $inc: { [fieldToUpdate]: 1 },
     });
+
+    if (activityType === 'watched' && movie.runtime) {
+      await User.findByIdAndUpdate(userId, {
+        $inc: { totalWatchTime: movie.runtime },
+      });
+    }
 
     message = `Movie added to ${activityType} list`;
     isActive = true;
@@ -92,7 +105,7 @@ exports.toggleActivity = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.checkMovieStatus = catchAsync(async (req, res, next) => {
+exports.checkMovieStatus = catchAsync(async (req, res) => {
   const { tmdbId } = req.params;
   const userId = req.user.id;
 

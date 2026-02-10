@@ -11,6 +11,7 @@ const schema = new mongoose.Schema({
   releaseDate: { type: Date },
   overview: { type: String },
   genres: [{ type: String }],
+  runtime: { type: Number },
   ratingsAverage: {
     type: Number,
     default: 0,
