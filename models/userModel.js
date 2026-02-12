@@ -16,15 +16,31 @@ const schema = new mongoose.Schema({
     lowercase: true,
     validate: [validator.isEmail, 'Please enter a valid email'],
   },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true,
+    select: false,
+  },
   password: {
     type: String,
-    required: [true, 'Please enter your password '],
+    required: [
+      function () {
+        return !this.googleId;
+      },
+      'Please enter your password ',
+    ],
     minLength: 8,
     select: false,
   },
   confirmPassword: {
     type: String,
-    required: [true, 'Please confirm your password'],
+    required: [
+      function () {
+        return !this.googleId;
+      },
+      'Please confirm your password',
+    ],
     validate: {
       validator: function (el) {
         return this.password === el;
@@ -75,6 +91,7 @@ schema.methods.correctPassword = async function (
   candidatePassword,
   userPassword,
 ) {
+  if (!userPassword) return false;
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 

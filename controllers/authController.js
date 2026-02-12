@@ -95,6 +95,14 @@ exports.signup = catchAsync(async (req, res, next) => {
   createSendToken(newUser, 201, res);
 });
 
+exports.googleAuthCallback = catchAsync(async (req, res, next) => {
+  if (!req.user) {
+    return next(new AppError('Google authentication failed', 401));
+  }
+
+  createSendToken(req.user, 200, res);
+});
+
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
