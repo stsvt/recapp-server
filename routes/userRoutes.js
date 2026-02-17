@@ -1,5 +1,6 @@
 const express = require('express');
 const passport = require('passport');
+
 const authController = require('../controllers/authController');
 const userController = require('../controllers/userController');
 
@@ -267,7 +268,9 @@ router.patch(
   authController.updatePassword,
 );
 
-router.get('/me', authController.protect, userController.getMe);
+router.use(authController.protect);
+
+router.get('/me', userController.getMe);
 
 /**
  * @swagger
@@ -322,7 +325,12 @@ router.get('/me', authController.protect, userController.getMe);
  *       400:
  *         description: Спроба оновити пароль через цей маршрут
  */
-router.patch('/updateMe', authController.protect, userController.updateMe);
+router.patch(
+  '/updateMe',
+  userController.uploadUserPhoto,
+  userController.resizeUserPhoto,
+  userController.updateMe,
+);
 
 /**
  * @swagger
@@ -338,7 +346,7 @@ router.patch('/updateMe', authController.protect, userController.updateMe);
  *       401:
  *         description: Не авторизований
  */
-router.delete('/deleteMe', authController.protect, userController.deleteMe);
+router.delete('/deleteMe', userController.deleteMe);
 
 /**
  * @swagger

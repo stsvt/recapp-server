@@ -49,7 +49,7 @@ const schema = new mongoose.Schema({
     },
   },
   description: { type: String, maxLength: 300 },
-  photo: String,
+  photo: { type: String, default: 'default.jpg' },
   role: {
     type: String,
     enum: ['user', 'admin'],
