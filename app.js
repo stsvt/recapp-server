@@ -1,6 +1,7 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const path = require('path');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const passport = require('passport');
@@ -38,6 +39,8 @@ const limiter = rateLimit({
 app.set('trust proxy', 1);
 
 app.use('/api', limiter);
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cors({ origin: process.env.ORIGIN_URL, credentials: true }));
 
