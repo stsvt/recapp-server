@@ -1,0 +1,21 @@
+extends baseEmail
+
+block content
+    p Привіт, #{firstName}!
+    p Вітаємо в RecApp! Ми дуже раді бачити тебе в нашій кіноспільноті 🎉
+    p Ми знаємо, як іноді важко обрати кіно на вечір. Саме тому ми створили RecApp — щоб радити фільми, які зайдуть саме тобі, а не просто "те, що зараз в тренді".
+    p А щоб ми могли краще познайомитись (і щоб твій профіль виглядав круто), не забудь додати своє фото!
+    table.btn.btn-primary(role='presentation', border='0', cellpadding='0', cellspacing='0')
+        tbody
+            tr
+                td(align='center')
+                    table(role='presentation', border='0', cellpadding='0', cellspacing='0')
+                        tbody
+                            tr
+                                td
+                                    a(href=`${url}`, target='_blank') Завантажити фото
+
+
+    p Хапай попкорн і поїхали!
+    p З найкращими побажаннями,
+    p Команда RecApp
