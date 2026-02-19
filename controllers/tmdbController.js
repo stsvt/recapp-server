@@ -81,6 +81,10 @@ exports.getMovieById = catchAsync(async (req, res, next) => {
   try {
     const data = await fetchMovieFromTMDB(id);
 
+    if (data.original_language === 'ru') {
+      return next(new AppError('Movie not available', 404));
+    }
+
     await client.setEx(cacheKey, 21600, JSON.stringify(data));
 
     console.log('GETTING from external API');
@@ -125,6 +129,12 @@ exports.getTopRatedMovies = catchAsync(async (req, res, next) => {
   }
 
   const data = await response.json();
+
+  if (data.results) {
+    data.results = data.results.filter(
+      (movie) => movie.original_language !== 'ru',
+    );
+  }
 
   await client.setEx(cacheKey, 86400, JSON.stringify(data));
 
@@ -173,6 +183,12 @@ exports.getUpcomingMovies = catchAsync(async (req, res, next) => {
 
   const data = await response.json();
 
+  if (data.results) {
+    data.results = data.results.filter(
+      (movie) => movie.original_language !== 'ru',
+    );
+  }
+
   await client.setEx(cacheKey, 86400, JSON.stringify(data));
 
   console.log('GETTING from external API');
@@ -219,6 +235,12 @@ exports.getNowPlayingMovies = catchAsync(async (req, res, next) => {
 
   const data = await response.json();
 
+  if (data.results) {
+    data.results = data.results.filter(
+      (movie) => movie.original_language !== 'ru',
+    );
+  }
+
   await client.setEx(cacheKey, 86400, JSON.stringify(data));
 
   console.log('GETTING from external API');
@@ -263,6 +285,12 @@ exports.searchMovies = catchAsync(async (req, res, next) => {
   }
 
   const data = await response.json();
+
+  if (data.results) {
+    data.results = data.results.filter(
+      (movie) => movie.original_language !== 'ru',
+    );
+  }
 
   await client.setEx(cacheKey, 3600, JSON.stringify(data));
 
