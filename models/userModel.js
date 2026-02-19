@@ -61,8 +61,14 @@ const schema = new mongoose.Schema({
     min: [0, 'Total watch time cannot be negative'],
   },
   passwordChangedAt: Date,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
+  passwordResetToken: {
+    type: String,
+    select: false,
+  },
+  passwordResetExpires: {
+    type: Date,
+    select: false,
+  },
   active: {
     type: Boolean,
     default: true,

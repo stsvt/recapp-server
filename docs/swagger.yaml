@@ -1,0 +1,1139 @@
+openapi: 3.0.0
+info:
+  title: RecApp API Documentation
+  version: 1.0.0
+  description: Recapp API
+  contact:
+    name: Taras Stasiv
+servers:
+  - url: http://localhost:3000
+    description: Development server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    MovieObject:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 278
+        title:
+          type: string
+          example: Втеча з Шоушенка
+        original_title:
+          type: string
+          example: The Shawshank Redemption
+        overview:
+          type: string
+          example: Енді Дюфрейна, віцепрезидента солідного банку, засуджують до двох довічних ув’язнень...
+        poster_path:
+          type: string
+          example: /6BRshOK03BnxTedpAhZl2yZBLTY.jpg
+        backdrop_path:
+          type: string
+          example: /zfbjgQE1uSd9wiPTX4VzsLi0rGG.jpg
+        release_date:
+          type: string
+          format: date
+          example: 1994-09-23
+        vote_average:
+          type: number
+          format: float
+          example: 8.715
+        vote_count:
+          type: integer
+          example: 29754
+        popularity:
+          type: number
+          format: float
+          example: 35.3878
+        genre_ids:
+          type: array
+          items:
+            type: integer
+          example: [ 18, 80 ]
+        adult:
+          type: boolean
+          example: false
+        original_language:
+          type: string
+          example: en
+        video:
+          type: boolean
+          example: false
+    ExtendedMovieObject:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1426964
+        title:
+          type: string
+          example: Місто страху
+        original_title:
+          type: string
+          example:
+            Salve Geral: Irmandade
+        overview:
+          type: string
+          example: Сан-Паулу охоплює безпрецедентна хвиля насильства...
+        poster_path:
+          type: string
+          example: /dX1vizppLbd42L5UcfFjW1QCLVb.jpg
+        backdrop_path:
+          type: string
+          example: /1Xdsq7U7bvJJd2X7Jg4qNaKVkYO.jpg
+        release_date:
+          type: string
+          format: date
+          example: 2026-02-10
+        runtime:
+          type: integer
+          example: 103
+        vote_average:
+          type: number
+          format: float
+          example: 4.806
+        vote_count:
+          type: integer
+          example: 31
+        popularity:
+          type: number
+          format: float
+          example: 168.581
+        budget:
+          type: integer
+          example: 0
+        revenue:
+          type: integer
+          example: 0
+        status:
+          type: string
+          example: Released
+        tagline:
+          type: string
+          example: ""
+        homepage:
+          type: string
+          example: https://www.netflix.com/ua/title/81758092
+        imdb_id:
+          type: string
+          example: tt39369643
+        original_language:
+          type: string
+          example: pt
+        adult:
+          type: boolean
+          example: false
+        video:
+          type: boolean
+          example: false
+        belongs_to_collection:
+          type: object
+          nullable: true
+          example: null
+        genres:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+          example: [ { id: 28, name: "Бойовик" }, { id: 53, name: "Трилер" } ]
+        origin_country:
+          type: array
+          items:
+            type: string
+          example: [ "BR" ]
+        production_companies:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              logo_path:
+                type: string
+              name:
+                type: string
+              origin_country:
+                type: string
+          example: [ { id: 345, logo_path: "/hj2nqoG2F9COm16fqvM0YpY3jL4.png", name: "O2 Filmes", origin_country: "BR" } ]
+        production_countries:
+          type: array
+          items:
+            type: object
+            properties:
+              iso_3166_1:
+                type: string
+              name:
+                type: string
+          example: [ { iso_3166_1: "BR", name: "Brazil" } ]
+        spoken_languages:
+          type: array
+          items:
+            type: object
+            properties:
+              english_name:
+                type: string
+              iso_639_1:
+                type: string
+              name:
+                type: string
+          example: [ { english_name: "Portuguese", iso_639_1: "pt", name: "Português" } ]
+        credits:
+          type: object
+          properties:
+            cast:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  character:
+                    type: string
+                  profile_path:
+                    type: string
+                    nullable: true
+                  order:
+                    type: integer
+            crew:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  job:
+                    type: string
+                  department:
+                    type: string
+                  profile_path:
+                    type: string
+                    nullable: true
+        videos:
+          type: object
+          properties:
+            results:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  key:
+                    type: string
+                  site:
+                    type: string
+                  type:
+                    type: string
+        recommendations:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            total_pages:
+              type: integer
+              example: 0
+            total_results:
+              type: integer
+              example: 0
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/MovieObject'
+tags:
+  - name: Users
+    description: User management
+  - name: TMDB
+    description: TMDB Movie management
+paths:
+  /api/v1/users/auth/google:
+    get:
+      summary: Авторизація через Google
+      tags: [ Users ]
+      responses:
+        "302":
+          description: Redirect to Google for authentication
+        "401":
+          description: Unauthorized
+
+  /api/v1/users/auth/google/callback:
+    get:
+      summary: Callback URL для Google авторизації
+      tags: [ Users ]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            example: user
+                          email:
+                            type: string
+                            example: user@gmail.com
+                          photo:
+                            type: string
+                            example: default.jpg
+                          role:
+                            type: string
+                            example: user
+                          totalWatchTime:
+                            type: integer
+                            example: 0
+                          _id:
+                            type: string
+                            example: 60d0fe4f5311236168a109ca
+        "401":
+          description: Unauthorized
+
+  /api/v1/users/signup:
+    post:
+      summary: Реєстрація нового користувача
+      tags: [ Users ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - passwordConfirm
+              properties:
+                name:
+                  type: string
+                  example: user
+                email:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: qwerty123
+                confirmPassword:
+                  type: string
+                  example: qwerty123
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            example: user
+                          email:
+                            type: string
+                            example: user@example.com
+                          photo:
+                            type: string
+                            example: default.jpg
+                          role:
+                            type: string
+                            example: user
+                          totalWatchTime:
+                            type: integer
+                            example: 0
+                          _id:
+                            type: string
+                            example: 60d0fe4f5311236168a109ca
+        "500":
+          description: Internal Server Error
+
+  /api/v1/users/login:
+    post:
+      summary: Вхід користувача
+      tags: [ Users ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: qwerty123
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            example: user
+                          email:
+                            type: string
+                            example: user@example.com
+                          photo:
+                            type: string
+                            example: default.jpg
+                          role:
+                            type: string
+                            example: user
+                          totalWatchTime:
+                            type: integer
+                            example: 0
+                          _id:
+                            type: string
+                            example: 60d0fe4f5311236168a109ca
+        "500":
+          description: Internal Server Error
+        "401":
+          description: Incorrect email or password
+
+  /api/v1/users/forgotPassword:
+    post:
+      summary: Відновлення паролю
+      tags: [ Users ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Token sent to email!
+        "404":
+          description: Not Found
+
+  /api/v1/users/resetPassword/{token}:
+    patch:
+      summary: Скидання паролю
+      tags: [ Users ]
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+          description: Токен скидання паролю
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+                - confirmPassword
+              properties:
+                password:
+                  type: string
+                  example: newpassword123
+                confirmPassword:
+                  type: string
+                  example: newpassword123
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            example: user
+                          email:
+                            type: string
+                            example: user@example.com
+                          photo:
+                            type: string
+                            example: default.jpg
+                          role:
+                            type: string
+                            example: user
+                          totalWatchTime:
+                            type: integer
+                            example: 0
+                          _id:
+                            type: string
+                            example: 60d0fe4f5311236168a109ca
+                          passwordChangedAt:
+                            type: string
+                            example: 2026-01-01T12:00:00.000Z
+        "400":
+          description: Bad Request
+
+  /api/v1/users/updateMyPassword:
+    patch:
+      summary: Оновлення паролю
+      tags: [ Users ]
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - passwordCurrent
+                - password
+                - confirmPassword
+              properties:
+                passwordCurrent:
+                  type: string
+                  example: oldpassword123
+                password:
+                  type: string
+                  example: newpassword123
+                confirmPassword:
+                  type: string
+                  example: newpassword123
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            example: user
+                          email:
+                            type: string
+                            example: user@example.com
+                          photo:
+                            type: string
+                            example: default.jpg
+                          role:
+                            type: string
+                            example: user
+                          totalWatchTime:
+                            type: integer
+                            example: 0
+                          _id:
+                            type: string
+                            example: 60d0fe4f5311236168a109ca
+                          passwordChangedAt:
+                            type: string
+                            example: 2026-01-01T12:00:00.000Z
+        "401":
+          description: Unauthorized
+
+  /api/v1/users/me:
+    get:
+      summary: Отримати дані поточного користувача
+      tags: [ Users ]
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            example: user
+                          email:
+                            type: string
+                            example: user@example.com
+                          photo:
+                            type: string
+                            example: default.jpg
+                          role:
+                            type: string
+                            example: user
+                          totalWatchTime:
+                            type: integer
+                            example: 0
+                          _id:
+                            type: string
+                            example: 60d0fe4f5311236168a109ca
+                          passwordChangedAt:
+                            type: string
+                            example: 2026-01-01T12:00:00.000Z
+        "401":
+          description: Unauthorized
+
+  /api/v1/users/updateMe:
+    patch:
+      summary: Оновити дані поточного користувача
+      tags: [ Users ]
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: newName
+                email:
+                  type: string
+                  format: email
+                  example: newemail@example.com
+                description:
+                  type: string
+                  example: Короткий опис профілю
+                photo:
+                  type: string
+                  format: binary
+                  description: Файл зображення для аватарки
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: newName
+                email:
+                  type: string
+                  format: email
+                  example: newemail@example.com
+                description:
+                  type: string
+                  example: Короткий опис профілю
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            example: newName
+                          email:
+                            type: string
+                            example: newemail@example.com
+                          description:
+                            type: string
+                            example: I love movies
+                          photo:
+                            type: string
+                            example: user-photo-123.jpg
+                          role:
+                            type: string
+                            example: user
+                          totalWatchTime:
+                            type: integer
+                            example: 0
+                          _id:
+                            type: string
+                            example: 60d0fe4f5311236168a109ca
+        "400":
+          description: Bad Request (This route is not for password updates)
+        "401":
+          description: Unauthorized
+
+  /api/v1/users/deleteMe:
+    delete:
+      summary: Видалення (деактивація) поточного користувача
+      tags: [ Users ]
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+
+  /api/v1/users:
+    get:
+      summary: Отримати всіх користувачів
+      tags: [ Users ]
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      users:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                              example: 6996e1c873178f0cc7fb2529
+                            name:
+                              type: string
+                              example: user
+                            email:
+                              type: string
+                              example: user@gmail.com
+                            photo:
+                              type: string
+                              example: default.jpg
+                            role:
+                              type: string
+                              example: user
+                            totalWatchTime:
+                              type: integer
+                              example: 0
+                            __v:
+                              type: integer
+                              example: 0
+        "401":
+          description: Unauthorized
+
+  /api/v1/tmdb/genres:
+    get:
+      summary: Отримати жанри фільмів
+      tags: [ TMDB ]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      genres:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 28
+                            name:
+                              type: string
+                              example: Бойовик
+  /api/v1/tmdb/topRated:
+    get:
+      summary: Отримати фільми з найвищим рейтингом
+      description: Повертає список топових фільмів з TMDB. Підтримує пагінацію. Результати кешуються в Redis на 24 години.
+      tags: [ TMDB ]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Номер сторінки для пагінації
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  source:
+                    type: string
+                    description: Вказує на джерело даних (присутнє, якщо дані завантажено з кешу)
+                    example: cache
+                  data:
+                    type: object
+                    properties:
+                      movies:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                            example: 1
+                          results:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/MovieObject'
+        "400":
+          description: Bad Request
+  /api/v1/tmdb/upcoming:
+    get:
+      summary: Отримати майбутні прем'єри фільмів
+      description: Повертає список фільмів, які незабаром вийдуть у прокат. Підтримує пагінацію. Результати кешуються в Redis на 24 години.
+      tags: [ TMDB ]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Номер сторінки для пагінації
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  source:
+                    type: string
+                    description: Вказує на джерело даних (присутнє, якщо дані завантажено з кешу)
+                    example: cache
+                  data:
+                    type: object
+                    properties:
+                      movies:
+                        type: object
+                        properties:
+                          dates:
+                            type: object
+                            description: Період, в який очікуються прем'єри
+                            properties:
+                              maximum:
+                                type: string
+                                format: date
+                                example: 2026-03-18
+                              minimum:
+                                type: string
+                                format: date
+                                example: 2026-02-25
+                          page:
+                            type: integer
+                            example: 1
+                          results:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/MovieObject'
+  /api/v1/tmdb/search:
+    get:
+      summary: Пошук фільмів за назвою
+      description: Шукає фільми у базі TMDB за ключовим словом.
+      tags: [ TMDB ]
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+            example: Втеча з Шоушенка
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  source:
+                    type: string
+                    example: cache
+                  data:
+                    type: object
+                    properties:
+                      movies:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                            example: 1
+                          results:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/MovieObject'
+        "400":
+          description: Bad Request
+
+  /api/v1/tmdb/nowPlaying:
+    get:
+      summary: Отримати фільми, що зараз у прокаті
+      description: Повертає список фільмів, які наразі показують у кінотеатрах. Підтримує пагінацію. Результати можуть кешуватися в Redis.
+      tags: [ TMDB ]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Номер сторінки для пагінації
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  source:
+                    type: string
+                    description: Вказує на джерело даних (присутнє, якщо дані завантажено з кешу)
+                    example: cache
+                  data:
+                    type: object
+                    properties:
+                      movies:
+                        type: object
+                        properties:
+                          dates:
+                            type: object
+                            description: Період прокату фільмів
+                            properties:
+                              maximum:
+                                type: string
+                                format: date
+                                example: 2026-02-25
+                              minimum:
+                                type: string
+                                format: date
+                                example: 2026-01-14
+                          page:
+                            type: integer
+                            example: 1
+                          results:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/MovieObject'
+        "400":
+          description: Bad Request
+
+  /api/v1/tmdb:
+    get:
+      summary: Отримати всі фільми
+      description: Універсальний ендпоінт для пошуку та фільтрації фільмів за різними критеріями (жанри, рік, рейтинг тощо). Результати кешуються в Redis на 1 тиждень.
+      tags: [ TMDB ]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Номер сторінки для пагінації
+        - in: query
+          name: with_genres
+          schema:
+            type: string
+            example: "28,53"
+          description: Кома-сепарований список ID жанрів (наприклад, 28 для Бойовика, 53 для Трилера)
+        - in: query
+          name: sort_by
+          schema:
+            type: string
+            example: popularity.desc
+          description: Параметр сортування (наприклад, popularity.desc, vote_average.desc, primary_release_date.desc)
+        - in: query
+          name: primary_release_year
+          schema:
+            type: integer
+            example: 2026
+          description: Фільтрація за роком випуску
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  source:
+                    type: string
+                    description: Вказує на джерело даних (присутнє, якщо дані завантажено з кешу)
+                    example: cache
+                  data:
+                    type: object
+                    properties:
+                      movies:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                            example: 1
+                          results:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/MovieObject'
+        "400":
+          description: Bad Request
+
+  /api/v1/tmdb/{id}:
+    get:
+      summary: Отримати розширену інформацію про фільм
+      description: Повертає повну інформацію про фільм за його ID, включаючи акторський склад (cast), знімальну групу (crew), відеоролики (трейлери) та рекомендовані фільми.
+      tags: [ TMDB ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 1426964
+          description: Унікальний ідентифікатор фільму в базі TMDB
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      movie:
+                        $ref: '#/components/schemas/ExtendedMovieObject'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
