@@ -13,11 +13,70 @@ const router = express.Router();
  *   description: User management
  */
 
+/**
+ * @swagger
+ * /api/v1/users/auth/google:
+ *   get:
+ *     summary: Авторизація через Google
+ *     tags: [Users]
+ *     responses:
+ *       302:
+ *         description: Redirect to Google for authentication
+ *       401:
+ *         description: Unauthorized
+ */
 router.get(
   '/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] }),
 );
 
+/**
+ * @swagger
+ * /api/v1/users/auth/google/callback:
+ *  get:
+ *   summary: Callback URL для Google авторизації
+ *   tags: [Users]
+ *   responses:
+ *     200:
+ *       description: OK
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 example: success
+ *               token:
+ *                 type: string
+ *                 example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *               data:
+ *                 type: object
+ *                 properties:
+ *                   user:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                         example: user
+ *                       email:
+ *                         type: string
+ *                         example: user@gmail.com
+ *                       photo:
+ *                         type: string
+ *                         example: default.jpg
+ *                       role:
+ *                         type: string
+ *                         example: user
+ *                       totalWatchTime:
+ *                         type: integer
+ *                         example: 0
+ *                       _id:
+ *                         type: string
+ *                         example: 60d0fe4f5311236168a109ca
+ *     401:
+ *       description: Unauthorized
+ */
 router.get(
   '/auth/google/callback',
   passport.authenticate('google', {
@@ -31,7 +90,7 @@ router.get(
  * @swagger
  * /api/v1/users/signup:
  *   post:
- *     summary: Зареєструвати нового користувача
+ *     summary: Реєстрація нового користувача
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -47,19 +106,19 @@ router.get(
  *             properties:
  *               name:
  *                 type: string
- *                 example: John Doe
+ *                 example: user
  *               email:
  *                 type: string
- *                 example: john@example.com
+ *                 example: user@example.com
  *               password:
  *                 type: string
- *                 example: password123
- *               passwordConfirm:
+ *                 example: qwerty123
+ *               confirmPassword:
  *                 type: string
- *                 example: password123
+ *                 example: qwerty123
  *     responses:
  *       201:
- *         description: Користувач зареєстрований успішно
+ *         description: Created
  *         content:
  *           application/json:
  *             schema:
@@ -79,15 +138,24 @@ router.get(
  *                       properties:
  *                         name:
  *                           type: string
- *                           example: John Doe
+ *                           example: user
  *                         email:
  *                           type: string
- *                           example: john@example.com
+ *                           example: user@example.com
+ *                         photo:
+ *                            type: string
+ *                            example: default.jpg
  *                         role:
  *                           type: string
  *                           example: user
- *       400:
- *         description: Bad request
+ *                         totalWatchTime:
+ *                           type: integer
+ *                           example: 0
+ *                         _id:
+ *                           type: string
+ *                           example: 60d0fe4f5311236168a109ca
+ *       500:
+ *         description: Internal Server Error
  */
 router.post('/signup', authController.signup);
 
@@ -109,13 +177,13 @@ router.post('/signup', authController.signup);
  *             properties:
  *               email:
  *                 type: string
- *                 example: john@example.com
+ *                 example: user@example.com
  *               password:
  *                 type: string
- *                 example: password123
+ *                 example: qwerty123
  *     responses:
  *       200:
- *         description: Вхід успішний
+ *         description: OK
  *         content:
  *           application/json:
  *             schema:
@@ -127,6 +195,32 @@ router.post('/signup', authController.signup);
  *                 token:
  *                   type: string
  *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         name:
+ *                           type: string
+ *                           example: user
+ *                         email:
+ *                           type: string
+ *                           example: user@example.com
+ *                         photo:
+ *                            type: string
+ *                            example: default.jpg
+ *                         role:
+ *                           type: string
+ *                           example: user
+ *                         totalWatchTime:
+ *                           type: integer
+ *                           example: 0
+ *                         _id:
+ *                           type: string
+ *                           example: 60d0fe4f5311236168a109ca
+ *       500:
+ *         description: Internal Server Error
  *       401:
  *         description: Incorrect email or password
  */
@@ -149,10 +243,10 @@ router.post('/login', authController.login);
  *             properties:
  *               email:
  *                 type: string
- *                 example: john@example.com
+ *                 example: user@example.com
  *     responses:
  *       200:
- *         description: Токен для скидання паролю надіслано на пошту
+ *         description: OK
  *         content:
  *           application/json:
  *             schema:
@@ -165,7 +259,7 @@ router.post('/login', authController.login);
  *                   type: string
  *                   example: Token sent to email!
  *       404:
- *         description: Користувача з такою електронною адресою не знайдено
+ *         description: Not Found
  */
 router.post('/forgotPassword', authController.forgotPassword);
 
@@ -190,17 +284,17 @@ router.post('/forgotPassword', authController.forgotPassword);
  *             type: object
  *             required:
  *               - password
- *               - passwordConfirm
+ *               - confirmPassword
  *             properties:
  *               password:
  *                 type: string
  *                 example: newpassword123
- *               passwordConfirm:
+ *               confirmPassword:
  *                 type: string
  *                 example: newpassword123
  *     responses:
  *       200:
- *         description: Пароль успішно змінено
+ *         description: OK
  *         content:
  *           application/json:
  *             schema:
@@ -212,16 +306,45 @@ router.post('/forgotPassword', authController.forgotPassword);
  *                 token:
  *                   type: string
  *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         name:
+ *                           type: string
+ *                           example: user
+ *                         email:
+ *                           type: string
+ *                           example: user@example.com
+ *                         photo:
+ *                            type: string
+ *                            example: default.jpg
+ *                         role:
+ *                           type: string
+ *                           example: user
+ *                         totalWatchTime:
+ *                           type: integer
+ *                           example: 0
+ *                         _id:
+ *                           type: string
+ *                           example: 60d0fe4f5311236168a109ca
+ *                         passwordChangedAt:
+ *                           type: string
+ *                           example: 2026-01-01T12:00:00.000Z
  *       400:
- *         description: Невірний токен або паролі не співпадають
+ *         description: Bad Request
  */
 router.patch('/resetPassword/:token', authController.resetPassword);
+
+router.use(authController.protect);
 
 /**
  * @swagger
  * /api/v1/users/updateMyPassword:
  *   patch:
- *     summary: Оновлення паролю авторизованого користувача
+ *     summary: Оновлення паролю
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -234,7 +357,7 @@ router.patch('/resetPassword/:token', authController.resetPassword);
  *             required:
  *               - passwordCurrent
  *               - password
- *               - passwordConfirm
+ *               - confirmPassword
  *             properties:
  *               passwordCurrent:
  *                 type: string
@@ -242,12 +365,12 @@ router.patch('/resetPassword/:token', authController.resetPassword);
  *               password:
  *                 type: string
  *                 example: newpassword123
- *               passwordConfirm:
+ *               confirmPassword:
  *                 type: string
  *                 example: newpassword123
  *     responses:
  *       200:
- *         description: Пароль успішно оновлено
+ *         description: OK
  *         content:
  *           application/json:
  *             schema:
@@ -259,8 +382,35 @@ router.patch('/resetPassword/:token', authController.resetPassword);
  *                 token:
  *                   type: string
  *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         name:
+ *                           type: string
+ *                           example: user
+ *                         email:
+ *                           type: string
+ *                           example: user@example.com
+ *                         photo:
+ *                            type: string
+ *                            example: default.jpg
+ *                         role:
+ *                           type: string
+ *                           example: user
+ *                         totalWatchTime:
+ *                           type: integer
+ *                           example: 0
+ *                         _id:
+ *                           type: string
+ *                           example: 60d0fe4f5311236168a109ca
+ *                         passwordChangedAt:
+ *                           type: string
+ *                           example: 2026-01-01T12:00:00.000Z
  *       401:
- *         description: Невірний поточний пароль
+ *         description: Unauthorized
  */
 router.patch(
   '/updateMyPassword',
@@ -268,37 +418,106 @@ router.patch(
   authController.updatePassword,
 );
 
-router.use(authController.protect);
-
+/**
+ * @swagger
+ * /api/v1/users/me:
+ *   get:
+ *     summary: Отримати дані поточного користувача
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 token:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         name:
+ *                           type: string
+ *                           example: user
+ *                         email:
+ *                           type: string
+ *                           example: user@example.com
+ *                         photo:
+ *                            type: string
+ *                            example: default.jpg
+ *                         role:
+ *                           type: string
+ *                           example: user
+ *                         totalWatchTime:
+ *                           type: integer
+ *                           example: 0
+ *                         _id:
+ *                           type: string
+ *                           example: 60d0fe4f5311236168a109ca
+ *                         passwordChangedAt:
+ *                           type: string
+ *                           example: 2026-01-01T12:00:00.000Z
+ *       401:
+ *         description: Unauthorized
+ */
 router.get('/me', userController.getMe);
 
 /**
  * @swagger
  * /api/v1/users/updateMe:
  *   patch:
- *     summary: Оновлення даних поточного користувача
+ *     summary: Оновити дані поточного користувача
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: newName
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: newemail@example.com
+ *               description:
+ *                 type: string
+ *                 example: Короткий опис профілю
+ *               photo:
+ *                 type: string
+ *                 format: binary
+ *                 description: Файл зображення для аватарки
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
  *               name:
  *                 type: string
- *                 example: John Doe
+ *                 example: newName
  *               email:
  *                 type: string
- *                 example: john@example.com
+ *                 format: email
+ *                 example: newemail@example.com
  *               description:
  *                 type: string
- *                 example: "I love movies!"
+ *                 example: Короткий опис профілю
  *     responses:
  *       200:
- *         description: Дані користувача успішно оновлено
+ *         description: OK
  *         content:
  *           application/json:
  *             schema:
@@ -315,15 +534,29 @@ router.get('/me', userController.getMe);
  *                       properties:
  *                         name:
  *                           type: string
- *                           example: John Doe
+ *                           example: newName
  *                         email:
  *                           type: string
- *                           example: john@example.com
+ *                           example: newemail@example.com
+ *                         description:
+ *                           type: string
+ *                           example: I love movies
+ *                         photo:
+ *                           type: string
+ *                           example: user-photo-123.jpg
  *                         role:
  *                           type: string
  *                           example: user
+ *                         totalWatchTime:
+ *                           type: integer
+ *                           example: 0
+ *                         _id:
+ *                           type: string
+ *                           example: 60d0fe4f5311236168a109ca
  *       400:
- *         description: Спроба оновити пароль через цей маршрут
+ *         description: Bad Request (This route is not for password updates)
+ *       401:
+ *         description: Unauthorized
  */
 router.patch(
   '/updateMe',
@@ -342,9 +575,9 @@ router.patch(
  *       - bearerAuth: []
  *     responses:
  *       204:
- *         description: Користувач успішно видалений (деактивований)
+ *         description: No Content
  *       401:
- *         description: Не авторизований
+ *         description: Unauthorized
  */
 router.delete('/deleteMe', userController.deleteMe);
 
@@ -354,9 +587,11 @@ router.delete('/deleteMe', userController.deleteMe);
  *   get:
  *     summary: Отримати всіх користувачів
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Список всіх користувачів
+ *         description: OK
  *         content:
  *           application/json:
  *             schema:
@@ -365,9 +600,6 @@ router.delete('/deleteMe', userController.deleteMe);
  *                 status:
  *                   type: string
  *                   example: success
- *                 results:
- *                   type: integer
- *                   example: 10
  *                 data:
  *                   type: object
  *                   properties:
@@ -376,15 +608,29 @@ router.delete('/deleteMe', userController.deleteMe);
  *                       items:
  *                         type: object
  *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: 6996e1c873178f0cc7fb2529
  *                           name:
  *                             type: string
- *                             example: John Doe
+ *                             example: user
  *                           email:
  *                             type: string
- *                             example: john@example.com
+ *                             example: user@gmail.com
+ *                           photo:
+ *                             type: string
+ *                             example: default.jpg
  *                           role:
  *                             type: string
  *                             example: user
+ *                           totalWatchTime:
+ *                             type: integer
+ *                             example: 0
+ *                           __v:
+ *                             type: integer
+ *                             example: 0
+ *       401:
+ *         description: Unauthorized
  */
 router.get('/', userController.getAllUsers);
 
