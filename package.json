@@ -41,7 +41,8 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "validator": "^13.15.26",
-    "xss-clean": "^0.1.4"
+    "xss-clean": "^0.1.4",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "@types/mongoose": "^5.11.96",
