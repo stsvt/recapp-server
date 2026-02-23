@@ -111,11 +111,13 @@ exports.googleAuthCallback = catchAsync(async (req, res, next) => {
     _id: req.user._id,
     name: req.user.name,
     email: req.user.email,
-    photo: req.user.photo
+    photo: req.user.photo,
   };
 
   const userData = encodeURIComponent(JSON.stringify(user));
-  res.redirect(`http://localhost:5173/google/callback?token=${token}&user=${userData}`);
+  res.redirect(
+    `${process.env.ORIGIN_URL}/google/callback?token=${token}&user=${userData}`,
+  );
 });
 
 exports.login = catchAsync(async (req, res, next) => {
