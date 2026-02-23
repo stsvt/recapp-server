@@ -4,13 +4,6 @@ const activityController = require('../controllers/activityController');
 
 const router = express.Router();
 
-/**
- * @swagger
- * tags:
- *   name: Activity
- *   description: User activity management (likes, views)
- */
-
 router.use(authController.protect);
 
 router
