@@ -386,6 +386,11 @@ components:
         title:
           type: string
           example: Милосердя
+        reviews:
+          type: array
+          description: Віртуальне поле з відгуками до фільму (заповнюється при отриманні конкретного фільму)
+          items:
+            $ref: '#/components/schemas/ReviewObject'
     PersonImageObject:
       type: object
       properties:
@@ -493,15 +498,48 @@ components:
           type: number
           format: float
           example: 5
+
+    ReviewObject:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 699c2f4c72b01b34e0ba4935
+        user:
+          type: string
+          description: ID користувача
+          example: 699450d95d1fa52694992928
+        movie:
+          type: string
+          description: Локальний MongoDB ID фільму
+          example: 699c2f4c41fdc4732f8f8b48
+        review:
+          type: string
+          example: Це просто неймовірний фільм, сюжет тримає в напрузі до самого кінця!
+        rating:
+          type: number
+          example: 9
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-02-23T14:30:00.000Z
+        active:
+          type: boolean
+          example: true
 tags:
   - name: Users
     description: User management
   - name: TMDB
     description: TMDB Movie management
+  - name: Movies
+    description: Local database movies management
   - name: Person
     description: Person (Actor/Director) management
   - name: Activity
     description: User activity management (likes, views)
+  - name: Reviews
+    description: Movie reviews management
+
 paths:
   /api/v1/users/auth/google:
     get:
@@ -1088,6 +1126,7 @@ paths:
                             name:
                               type: string
                               example: Бойовик
+
   /api/v1/tmdb/topRated:
     get:
       summary: Отримати фільми з найвищим рейтингом
@@ -1130,6 +1169,7 @@ paths:
                               $ref: '#/components/schemas/MovieObject'
         "400":
           description: Bad Request
+
   /api/v1/tmdb/topRatedSeries:
     get:
       summary: Отримати серіали з найвищим рейтингом
@@ -1215,6 +1255,7 @@ paths:
                               $ref: '#/components/schemas/AnimationObject'
         "400":
           description: Bad Request
+
   /api/v1/tmdb/upcoming:
     get:
       summary: Отримати майбутні прем'єри фільмів
@@ -1267,6 +1308,7 @@ paths:
                             type: array
                             items:
                               $ref: '#/components/schemas/MovieObject'
+
   /api/v1/tmdb/search:
     get:
       summary: Пошук фільмів за назвою
@@ -1682,7 +1724,7 @@ paths:
         "404":
           description: Not Found
 
-  /api/v1/activity/status/{id}:
+  /api/v1/activity/status/{tmdbId}:
     get:
       summary: Перевірити статус вподобання або збереження фільму
       description: Дозволяє користувачу перевірити, чи відзначив він певний фільм як вподобаний або збережений для перегляду. Вимагає авторизації.
@@ -1691,7 +1733,7 @@ paths:
         - bearerAuth: [ ]
       parameters:
         - in: path
-          name: id
+          name: tmdbId
           required: true
           schema:
             type: string
@@ -1722,3 +1764,218 @@ paths:
         "401":
           description: Unauthorized
 
+  /api/v1/reviews/{movieId}:
+    get:
+      summary: Отримати всі відгуки до фільму
+      description: Повертає масив усіх відгуків для конкретного фільму. Якщо фільм ще не має відгуків або не існує в локальній базі, повертається порожній масив.
+      tags: [ Reviews ]
+      parameters:
+        - in: path
+          name: movieId
+          required: true
+          schema:
+            type: string
+          description: TMDB ID фільму (наприклад, 1426964)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  results:
+                    type: integer
+                    example: 1
+                  data:
+                    type: object
+                    properties:
+                      reviews:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ReviewObject'
+        "404":
+          description: Not Found
+
+    post:
+      summary: Створити відгук до фільму
+      description: Створює новий відгук. Якщо фільм ще не збережений у локальній базі, він автоматично створюється на основі TMDB ID. Вимагає авторизації.
+      tags: [ Reviews ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: movieId
+          required: true
+          schema:
+            type: string
+          description: TMDB ID фільму
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - review
+                - rating
+              properties:
+                review:
+                  type: string
+                  example: Чудовий фільм, дуже сподобався!
+                rating:
+                  type: number
+                  example: 8.5
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      review:
+                        $ref: '#/components/schemas/ReviewObject'
+        "400":
+          description: Bad Request (Відсутній текст або рейтинг)
+        "401":
+          description: Unauthorized
+
+  /api/v1/reviews/{reviewId}:
+    patch:
+      summary: Оновити власний відгук
+      description: Дозволяє користувачу змінити текст відгуку або його рейтинг. Користувач може редагувати лише власні відгуки. Вимагає авторизації.
+      tags: [ Reviews ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: reviewId
+          required: true
+          schema:
+            type: string
+          description: MongoDB ID самого відгуку
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                review:
+                  type: string
+                  example: Оновлений текст відгуку. Після другого перегляду фільм здався ще кращим.
+                rating:
+                  type: number
+                  example: 10
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      review:
+                        $ref: '#/components/schemas/ReviewObject'
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (Спроба відредагувати чужий відгук)
+        "404":
+          description: Review not found
+
+    delete:
+      summary: Видалити (приховати) власний відгук
+      description:
+        Здійснює soft-delete відгуку (встановлює `active` - `false`). Вимагає авторизації.
+      tags: [ Reviews ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: reviewId
+          required: true
+          schema:
+            type: string
+          description: MongoDB ID відгуку
+      responses:
+        "204":
+          description: No Content (Відгук успішно видалено)
+        "401":
+          description: Unauthorized
+  /api/v1/movies:
+    get:
+      summary: Отримати всі збережені фільми
+      description: Повертає список усіх фільмів, які були збережені в локальну базу даних MongoDB (наприклад, коли хтось залишав відгук або додавав фільм у збережені).
+      tags: [ Movies ]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  results:
+                    type: integer
+                    example: 5
+                  data:
+                    type: object
+                    properties:
+                      movies:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/DBMovieObject'
+        "404":
+          description: No movies found
+
+  /api/v1/movies/{id}:
+    get:
+      summary: Отримати фільм з локальної БД за ID
+      description: Повертає детальну інформацію про збережений фільм за його MongoDB `_id`. Цей ендпоінт також автоматично "підтягує" (populate) усі відгуки, які належать цьому фільму.
+      tags: [ Movies ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: 699c2f4c41fdc4732f8f8b48
+          description: Локальний MongoDB _id фільму (НЕ TMDB ID!)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      movie:
+                        $ref: '#/components/schemas/DBMovieObject'
+        "404":
+          description: No movie found with that ID
