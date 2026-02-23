@@ -138,11 +138,114 @@ exports.getTopRatedMovies = catchAsync(async (req, res, next) => {
 
   await client.setEx(cacheKey, 86400, JSON.stringify(data));
 
-  console.log('Top Rated from TMDB');
+  console.log('Top Rated movies from TMDB');
 
   res.status(200).json({
     status: 'success',
     data: { movies: data },
+  });
+});
+
+exports.getTopRatedSeries = catchAsync(async (req, res, next) => {
+  const page = req.query.page || 1;
+
+  const cacheKey = `series:top_rated:page:${page}`;
+  const cachedSeries = await client.get(cacheKey);
+
+  if (cachedSeries) {
+    console.log('GETTING from CACHE');
+    return res.status(200).json({
+      status: 'success',
+      source: 'cache',
+      data: { series: JSON.parse(cachedSeries) },
+    });
+  }
+
+  const tmdbParams = new URLSearchParams({
+    language: 'uk-UA',
+    page: page,
+    sort_by: 'vote_average.desc',
+    'vote_count.gte': '1500',
+    include_adult: false,
+  });
+
+  const url = `${process.env.TMDB_BASIC_URL}discover/tv?${tmdbParams}`;
+
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}` },
+  });
+
+  if (!response.ok) {
+    return next(new AppError('Failed to fetch top rated series', 400));
+  }
+
+  const data = await response.json();
+
+  if (data.results) {
+    data.results = data.results.filter(
+      (series) => series.original_language !== 'ru',
+    );
+  }
+
+  await client.setEx(cacheKey, 86400, JSON.stringify(data));
+
+  console.log('Top Rated series from TMDB');
+
+  res.status(200).json({
+    status: 'success',
+    data: { series: data },
+  });
+});
+
+exports.getTopRatedAnimations = catchAsync(async (req, res, next) => {
+  const page = req.query.page || 1;
+
+  const cacheKey = `animations:top_rated:page:${page}`;
+  const cachedAnimations = await client.get(cacheKey);
+
+  if (cachedAnimations) {
+    console.log('GETTING from CACHE');
+    return res.status(200).json({
+      status: 'success',
+      source: 'cache',
+      data: { animations: JSON.parse(cachedAnimations) },
+    });
+  }
+
+  const tmdbParams = new URLSearchParams({
+    language: 'uk-UA',
+    page: page,
+    sort_by: 'vote_average.desc',
+    'vote_count.gte': '1500',
+    include_adult: false,
+    with_genres: '16',
+  });
+
+  const url = `${process.env.TMDB_BASIC_URL}discover/movie?${tmdbParams}`;
+
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}` },
+  });
+
+  if (!response.ok) {
+    return next(new AppError('Failed to fetch top rated animations', 400));
+  }
+
+  const data = await response.json();
+
+  if (data.results) {
+    data.results = data.results.filter(
+      (movie) => movie.original_language !== 'ru',
+    );
+  }
+
+  await client.setEx(cacheKey, 86400, JSON.stringify(data));
+
+  console.log('Top Rated animations from TMDB');
+
+  res.status(200).json({
+    status: 'success',
+    data: { animations: data },
   });
 });
 
