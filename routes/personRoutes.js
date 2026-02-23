@@ -10,6 +10,8 @@ const router = express.Router();
  *   description: Person management
  */
 
+router.get('/:id', personController.getPersonInfo);
+
 /**
  * @swagger
  * /api/v1/person/{id}/works:

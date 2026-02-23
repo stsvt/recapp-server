@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: Recapp API
   contact:
-    name: Taras Stasiv
+    name: Taras Stasiv or Vika Gevel
 servers:
   - url: http://localhost:3000
     description: Development server
@@ -386,11 +386,120 @@ components:
         title:
           type: string
           example: Милосердя
+    PersonImageObject:
+      type: object
+      properties:
+        aspect_ratio:
+          type: number
+          format: float
+          example: 0.667
+        height:
+          type: integer
+          example: 1920
+        file_path:
+          type: string
+          example: /kBSKKaOtsqIzZPhtEeHfCBmhWl9.jpg
+        vote_average:
+          type: number
+          format: float
+          example: 5.426
+        vote_count:
+          type: integer
+          example: 27
+        width:
+          type: integer
+          example: 1280
+    PersonInfoObject:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 54882
+        name:
+          type: string
+          example: Морена Баккарін
+        birthday:
+          type: string
+          format: date
+          example: 1979-06-02
+        deathday:
+          type: string
+          format: date
+          nullable: true
+          example: null
+        place_of_birth:
+          type: string
+          example: Rio de Janeiro, Rio de Janeiro, Brazil
+        biography:
+          type: string
+          example: ""
+        known_for_department:
+          type: string
+          example: Acting
+        profile_path:
+          type: string
+          example: /kBSKKaOtsqIzZPhtEeHfCBmhWl9.jpg
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonImageObject'
+    PersonDirectorWorkObject:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1426964
+        title:
+          type: string
+          example: Місто страху
+        media_type:
+          type: string
+          example: movie
+        poster_path:
+          type: string
+          nullable: true
+          example: /dX1vizppLbd42L5UcfFjW1QCLVb.jpg
+        release_date:
+          type: string
+          example: "2026-02-10"
+        vote_average:
+          type: number
+          format: float
+          example: 5
+
+    PersonActorWorkObject:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1426964
+        title:
+          type: string
+          example: Місто страху
+        media_type:
+          type: string
+          example: movie
+        poster_path:
+          type: string
+          nullable: true
+          example: /dX1vizppLbd42L5UcfFjW1QCLVb.jpg
+        character:
+          type: string
+          example: Ivan
+        release_date:
+          type: string
+          example: "2026-02-10"
+        vote_average:
+          type: number
+          format: float
+          example: 5
 tags:
   - name: Users
     description: User management
   - name: TMDB
     description: TMDB Movie management
+  - name: Person
+    description: Person (Actor/Director) management
   - name: Activity
     description: User activity management (likes, views)
 paths:
@@ -1355,6 +1464,118 @@ paths:
         "404":
           description: Not Found
 
+  /api/v1/person/{id}:
+    get:
+      summary: Отримати біографію та фотографії особи
+      description: Повертає детальну інформацію про актора або режисера за його TMDB ID, включно з галереєю фотографій. Результати кешуються на 7 днів.
+      tags: [ Person ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 54882
+          description: Унікальний ідентифікатор особи в базі TMDB
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  source:
+                    type: string
+                    description: Присутнє, якщо дані завантажено з кешу
+                    example: cache
+                  data:
+                    type: object
+                    properties:
+                      person:
+                        $ref: '#/components/schemas/PersonInfoObject'
+        "404":
+          description: Not Found
+
+  /api/v1/person/{id}/works:
+    get:
+      summary: Отримати режисерські  роботи
+      description: Повертає список фільмів та серіалів, які зрежисувала особа. Відсортовано за датою виходу від найновіших. Результати кешуються в Redis на 7 днів.
+      tags: [ Person ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 999
+          description: Унікальний ідентифікатор особи в базі TMDB
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  source:
+                    type: string
+                    description: Присутнє, якщо дані завантажено з кешу
+                    example: cache
+                  data:
+                    type: object
+                    properties:
+                      works:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PersonDirectorWorkObject'
+        "404":
+          description: Not Found
+
+  /api/v1/person/{id}/movies:
+    get:
+      summary: Отримати фільмографію актора
+      description: Повертає список усіх фільмів та серіалів, у яких знімалася особа як актор. Відсортовано за датою виходу від найновіших. Результати кешуються в Redis на 7 днів.
+      tags: [ Person ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            example: 189656
+          description: Унікальний ідентифікатор особи в базі TMDB
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  source:
+                    type: string
+                    description: Присутнє, якщо дані завантажено з кешу
+                    example: cache
+                  data:
+                    type: object
+                    properties:
+                      movies:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PersonActorWorkObject'
+        "404":
+          description: Not Found
+
   /api/v1/activity:
     post:
       summary: Вподобати або зберегти фільм
@@ -1445,7 +1666,6 @@ paths:
                               type: string
                               example: 60d0fe4f5311236168a109ca
                             movie:
-                              type: object
                               $ref: '#/components/schemas/DBMovieObject'
                             activityType:
                               type: string

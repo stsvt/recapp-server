@@ -104,3 +104,51 @@ exports.getActorMovies = catchAsync(async (req, res, next) => {
     data: { movies: actorMovies },
   });
 });
+
+exports.getPersonInfo = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  const cacheKey = `person:info:${id}`;
+  const cachedData = await client.get(cacheKey);
+
+  if (cachedData) {
+    console.log('Person info from CACHE');
+    return res.status(200).json({
+      status: 'success',
+      source: 'cache',
+      data: JSON.parse(cachedData),
+    });
+  }
+
+  const url = `${process.env.TMDB_BASIC_URL}person/${id}?language=uk-UA&append_to_response=images`;
+
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}` },
+  });
+
+  if (!response.ok) {
+    return next(new AppError('Failed to fetch person information', 404));
+  }
+
+  const data = await response.json();
+
+  const personInfo = {
+    id: data.id,
+    name: data.name,
+    birthday: data.birthday,
+    deathday: data.deathday,
+    place_of_birth: data.place_of_birth,
+    biography: data.biography,
+    known_for_department: data.known_for_department,
+    profile_path: data.profile_path,
+    images: data.images && data.images.profiles ? data.images.profiles : [],
+  };
+
+  await client.setEx(cacheKey, 604800, JSON.stringify({ person: personInfo }));
+
+  console.log('Person info from TMDB');
+  res.status(200).json({
+    status: 'success',
+    data: { person: personInfo },
+  });
+});
