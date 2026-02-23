@@ -4,13 +4,6 @@ const authController = require('../controllers/authController');
 
 const router = express.Router();
 
-/**
- * @swagger
- * tags:
- *   name: Reviews
- *   description: Review management
- */
-
 router
   .route('/:movieId')
   .get(reviewController.getAllReviews)

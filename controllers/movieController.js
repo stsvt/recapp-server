@@ -5,7 +5,7 @@ const Movie = require('../models/movieModel');
 exports.getAllMovies = catchAsync(async (req, res, next) => {
   const movies = await Movie.find();
 
-  if (!movies) {
+  if (movies.length === 0) {
     return next(new AppError('No movies found', 404));
   }
 
