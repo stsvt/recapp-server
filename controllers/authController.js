@@ -105,7 +105,19 @@ exports.googleAuthCallback = catchAsync(async (req, res, next) => {
     return next(new AppError('Google authentication failed', 401));
   }
 
-  createSendToken(req.user, 200, res);
+  const token = signToken(req.user._id);
+
+  const user = {
+    _id: req.user._id,
+    name: req.user.name,
+    email: req.user.email,
+    photo: req.user.photo,
+  };
+
+  const userData = encodeURIComponent(JSON.stringify(user));
+  res.redirect(
+    `${process.env.ORIGIN_URL}/google/callback?token=${token}&user=${userData}`,
+  );
 });
 
 exports.login = catchAsync(async (req, res, next) => {
