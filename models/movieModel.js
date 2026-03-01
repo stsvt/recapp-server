@@ -28,6 +28,17 @@ const schema = new mongoose.Schema({
     default: 0,
     min: [0, 'Watches count cannot be negative'],
   },
+  reactionCounts: {
+    type: Map,
+    of: Number,
+    default: {
+      fire: 0, // 🔥
+      mindblown: 0, // 🤯
+      crying: 0, // 😢
+      laughing: 0, // 😂
+      eyesWithHearts: 0, // 😍
+    },
+  },
 });
 
 schema.virtual('reviews', {

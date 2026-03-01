@@ -364,31 +364,65 @@ components:
         _id:
           type: string
           example: 699c2f4c41fdc4732f8f8b48
+        tmdbId:
+          type: integer
+          example: 1236153
+        title:
+          type: string
+          example: Милосердя
+        posterPath:
+          type: string
+          example: /pyok1kZJCfyuFapYXzHcy7BLlQa.jpg
+        releaseDate:
+          type: string
+          format: date-time
+          example: 2026-01-20T00:00:00.000Z
+        overview:
+          type: string
+          example: У недалекому майбутньому детектив постає перед судом за звинуваченням у вбивстві...
         genres:
           type: array
           items:
             type: string
           example: [ "Фантастика", "Бойовик", "Трилер" ]
-        posterPath:
-          type: string
-          example: /pyok1kZJCfyuFapYXzHcy7BLlQa.jpg
-        ratingsAverage:
-          type: number
-          format: float
-          example: 0
-        releaseDate:
-          type: string
-          format: date-time
-          example: 2026-01-20T00:00:00.000Z
         runtime:
           type: integer
           example: 100
-        title:
-          type: string
-          example: Милосердя
+        ratingsAverage:
+          type: number
+          format: float
+          example: 8.5
+        ratingsQuantity:
+          type: integer
+          example: 12
+        likesCount:
+          type: integer
+          example: 24
+        watchesCount:
+          type: integer
+          example: 56
+        reactionCounts:
+          type: object
+          description: Лічильники різних емоційних реакцій користувачів на фільм
+          properties:
+            fire:
+              type: integer
+              example: 5
+            mindblown:
+              type: integer
+              example: 2
+            crying:
+              type: integer
+              example: 0
+            laughing:
+              type: integer
+              example: 1
+            eyesWithHearts:
+              type: integer
+              example: 10
         reviews:
           type: array
-          description: Віртуальне поле з відгуками до фільму (заповнюється при отриманні конкретного фільму)
+          description: Віртуальне поле з відгуками до фільму (заповнюється при використанні populate)
           items:
             $ref: '#/components/schemas/ReviewObject'
     PersonImageObject:
@@ -1758,8 +1792,8 @@ paths:
 
   /api/v1/activity/status/{tmdbId}:
     get:
-      summary: Перевірити статус вподобання або збереження фільму
-      description: Дозволяє користувачу перевірити, чи відзначив він певний фільм як вподобаний або збережений для перегляду. Вимагає авторизації.
+      summary: Перевірити статус вподобання, перегляду та реакції фільму
+      description: Дозволяє користувачу перевірити, чи відзначив він певний фільм як вподобаний або збережений для перегляду, а також переглянути свою поточну емоційну реакцію та загальні лічильники реакцій фільму. Вимагає авторизації.
       tags: [ Activity ]
       security:
         - bearerAuth: [ ]
@@ -1791,6 +1825,102 @@ paths:
                       watched:
                         type: boolean
                         example: false
+                      currentReaction:
+                        type: string
+                        nullable: true
+                        example: fire
+                        description: Тип поточної реакції користувача (якщо є)
+                      reactionCounts:
+                        type: object
+                        description: Загальні лічильники різних емоційних реакцій користувачів на фільм
+                        properties:
+                          fire:
+                            type: integer
+                            example: 5
+                          mindblown:
+                            type: integer
+                            example: 2
+                          crying:
+                            type: integer
+                            example: 0
+                          laughing:
+                            type: integer
+                            example: 1
+                          eyesWithHearts:
+                            type: integer
+                            example: 10
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+
+  /api/v1/activity/reaction:
+    post:
+      summary: Додати, видалити або змінити реакцію на фільм
+      description: Універсальний ендпоінт для роботи з реакціями. Якщо реакції немає — створює її. Якщо користувач надсилає ту саму реакцію — видаляє її. Якщо надсилає іншу — оновлює її. Автоматично перераховує лічильники реакцій у моделі фільму. Вимагає авторизації.
+      tags: [ Activity ]
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tmdbId
+                - reactionType
+              properties:
+                tmdbId:
+                  type: string
+                  example: 1236153
+                  description: TMDB ID фільму
+                reactionType:
+                  type: string
+                  enum: [ fire, mindblown, crying, laughing, eyesWithHearts ]
+                  example: fire
+                  description: Тип реакції, яку користувач хоче поставити
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Reaction added
+                      currentReaction:
+                        type: string
+                        nullable: true
+                        example: fire
+                        description: Поточна реакція після виконання запиту (null, якщо видалено)
+                      reactionCounts:
+                        type: object
+                        description: Оновлені загальні лічильники реакцій на фільм
+                        properties:
+                          fire:
+                            type: integer
+                            example: 6
+                          mindblown:
+                            type: integer
+                            example: 2
+                          crying:
+                            type: integer
+                            example: 0
+                          laughing:
+                            type: integer
+                            example: 1
+                          eyesWithHearts:
+                            type: integer
+                            example: 10
         "400":
           description: Bad Request
         "401":

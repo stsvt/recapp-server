@@ -11,6 +11,7 @@ router
   .get(activityController.getUserActivities)
   .post(activityController.toggleActivity);
 
+router.post('/reaction', activityController.toggleReaction);
 router.get('/status/:tmdbId', activityController.checkMovieStatus);
 
 module.exports = router;
