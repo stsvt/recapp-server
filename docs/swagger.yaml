@@ -471,7 +471,6 @@ components:
           type: number
           format: float
           example: 5
-
     PersonActorWorkObject:
       type: object
       properties:
@@ -498,7 +497,6 @@ components:
           type: number
           format: float
           example: 5
-
     ReviewObject:
       type: object
       properties:
@@ -526,6 +524,32 @@ components:
         active:
           type: boolean
           example: true
+    FriendshipObject:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 60d21b4667d0d8992e610c85
+        requester:
+          type: string
+          description: MongoDB ID користувача, який надіслав запит
+          example: 699450d95d1fa52694992928
+        recipient:
+          type: string
+          description: MongoDB ID користувача, якому надіслано запит
+          example: 699450d95d1fa52694992929
+        status:
+          type: string
+          enum: [ pending, accepted, rejected ]
+          example: pending
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-03-01T12:00:00.000Z
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2026-03-01T12:00:00.000Z
 tags:
   - name: Users
     description: User management
@@ -539,6 +563,8 @@ tags:
     description: User activity management (likes, views)
   - name: Reviews
     description: Movie reviews management
+  - name: Friends
+    description: User friendship management (requests, accepts, rejects)
 
 paths:
   /api/v1/users/auth/google:
@@ -1054,6 +1080,12 @@ paths:
       tags: [ Users ]
       security:
         - bearerAuth: [ ]
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Пошуковий запит (шукає за іменем або email)
       responses:
         "200":
           description: OK
@@ -1979,3 +2011,253 @@ paths:
                         $ref: '#/components/schemas/DBMovieObject'
         "404":
           description: No movie found with that ID
+
+  /api/v1/friends/sendRequest/{userId}:
+    post:
+      summary: Надіслати запит у друзі
+      description: Надсилає запит у друзі іншому користувачу за його ID. Якщо цей користувач раніше вже надіслав вам запит, дружба приймається автоматично.
+      tags: [ Friends ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            example: 699450d95d1fa52694992929
+          description: Локальний MongoDB ID користувача, якому надсилається запит
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Friend request sent successfully
+                  data:
+                    type: object
+                    properties:
+                      friendship:
+                        $ref: '#/components/schemas/FriendshipObject'
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Friend request accepted automatically (mutual request)
+                  data:
+                    type: object
+                    properties:
+                      friendship:
+                        $ref: '#/components/schemas/FriendshipObject'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+  /api/v1/friends/acceptRequest/{userId}:
+    patch:
+      summary: Прийняти запит у друзі
+      description: Змінює статус вхідного запиту в друзі від вказаного користувача з `pending` на `accepted`. Вимагає авторизації (поточним користувачем має бути отримувач запиту).
+      tags: [ Friends ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            example: 699890f398a5f149e2d2dc73
+          description: Локальний MongoDB ID користувача, який надіслав вам запит
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Friend request accepted
+                  data:
+                    type: object
+                    properties:
+                      friendship:
+                        $ref: '#/components/schemas/FriendshipObject'
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+  /api/v1/friends/rejectRequest/{userId}:
+    delete:
+      summary: Відхилити запит у друзі
+      description: Видаляє вхідний запит у друзі від вказаного користувача. Працює лише для запитів зі статусом `pending`. Вимагає авторизації (поточним користувачем має бути отримувач запиту).
+      tags: [ Friends ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            example: 699890f398a5f149e2d2dc73
+          description: Локальний MongoDB ID користувача, який надіслав вам запит
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+  /api/v1/friends/removeFriend/{userId}:
+    delete:
+      summary: Видалити користувача з друзів
+      description: Видаляє існуючу дружбу (статус `accepted`) між поточним користувачем та вказаним користувачем, незалежно від того, хто був ініціатором запиту. Вимагає авторизації.
+      tags: [ Friends ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            example: 699890f398a5f149e2d2dc73
+          description: Локальний MongoDB ID друга, якого потрібно видалити
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+  /api/v1/friends/incomingRequests:
+    get:
+      summary: Отримати вхідні запити в друзі
+      description: Повертає список усіх нерозглянутих (зі статусом `pending`) запитів у друзі, надісланих поточному користувачу. Поле `requester` автоматично "розгортається" і містить базову інформацію про відправника (ім'я, email, фото). Вимагає авторизації.
+      tags: [ Friends ]
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  results:
+                    type: integer
+                    example: 1
+                  data:
+                    type: object
+                    properties:
+                      requests:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                              example: 60d21b4667d0d8992e610c85
+                            requester:
+                              type: object
+                              description: Дані користувача, який надіслав запит
+                              properties:
+                                _id:
+                                  type: string
+                                  example: 699450d95d1fa52694992928
+                                name:
+                                  type: string
+                                  example: taras
+                                email:
+                                  type: string
+                                  example: taras@example.com
+                                photo:
+                                  type: string
+                                  example: default.jpg
+                            recipient:
+                              type: string
+                              example: 699450d95d1fa52694992929
+                            status:
+                              type: string
+                              example: pending
+                            createdAt:
+                              type: string
+                              format: date-time
+                              example: 2026-03-01T12:00:00.000Z
+                            updatedAt:
+                              type: string
+                              format: date-time
+                              example: 2026-03-01T12:00:00.000Z
+        "401":
+          description: Unauthorized
+  /api/v1/friends:
+    get:
+      summary: Отримати список друзів
+      description: Повертає список усіх підтверджених друзів (де статус `accepted`) для поточного користувача. У відповіді повертається масив об'єктів самих друзів (з полями `_id`, `name`, `email`, `photo`), а не об'єкти записів дружби. Вимагає авторизації.
+      tags: [ Friends ]
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  results:
+                    type: integer
+                    example: 3
+                  data:
+                    type: object
+                    properties:
+                      friends:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                              example: 699450d95d1fa52694992929
+                            name:
+                              type: string
+                              example: vika
+                            email:
+                              type: string
+                              example: vika@example.com
+                            photo:
+                              type: string
+                              example: default.jpg
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
