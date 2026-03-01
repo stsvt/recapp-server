@@ -56,7 +56,17 @@ const filterObj = (obj, ...allowedFields) => {
 };
 
 exports.getAllUsers = catchAsync(async (req, res) => {
-  const users = await User.find();
+  const { search } = req.query;
+  const query = {};
+
+  if (search) {
+    query.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { email: { $regex: search, $options: 'i' } },
+    ];
+  }
+
+  const users = await User.find(query);
 
   res.status(200).json({ status: 'success', data: { users } });
 });
@@ -77,7 +87,13 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     );
   }
 
-  const filteredBody = filterObj(req.body, 'name', 'email', 'description', 'photo');
+  const filteredBody = filterObj(
+    req.body,
+    'name',
+    'email',
+    'description',
+    'photo',
+  );
 
   if (req.file) {
     filteredBody.photo = req.file.filename;
