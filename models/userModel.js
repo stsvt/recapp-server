@@ -90,7 +90,9 @@ schema.pre('save', async function () {
 });
 
 schema.pre(/^find/, function () {
-  this.find({ active: { $ne: false } });
+  if (!this.getOptions().skipActiveCheck) {
+    this.find({ active: { $ne: false } });
+  }
 });
 
 schema.methods.correctPassword = async function (

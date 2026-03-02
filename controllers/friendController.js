@@ -2,6 +2,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const User = require('../models/userModel');
 const Friendship = require('../models/friendshipModel');
+const Notification = require('../models/notificationModel');
 
 exports.sendRequest = catchAsync(async (req, res, next) => {
   const recipientId = req.params.userId;
@@ -39,6 +40,29 @@ exports.sendRequest = catchAsync(async (req, res, next) => {
       existingFriendship.status = 'accepted';
       await existingFriendship.save();
 
+      const io = req.app.get('io');
+      const activeUsers = req.app.get('activeUsers');
+
+      if (activeUsers && activeUsers.has(recipientId)) {
+        const recipientSocket = activeUsers.get(recipientId);
+
+        io.to(recipientSocket).emit('friend_request_accepted', {
+          message: `${req.user.name} accepted your friend request!`,
+          friend: {
+            _id: req.user._id,
+            name: req.user.name,
+            photo: req.user.photo,
+          },
+        });
+      }
+
+      await Notification.create({
+        sender: requesterId,
+        recipient: recipientId,
+        type: 'friend_request_accepted',
+        message: `${req.user.name} accepted your friend request!`,
+      });
+
       return res.status(200).json({
         status: 'success',
         message: 'Friend request accepted automatically (mutual request)',
@@ -51,6 +75,30 @@ exports.sendRequest = catchAsync(async (req, res, next) => {
     requester: requesterId,
     recipient: recipientId,
     status: 'pending',
+  });
+
+  const io = req.app.get('io');
+  const activeUsers = req.app.get('activeUsers');
+
+  if (activeUsers && activeUsers.has(recipientId)) {
+    const recipientSocket = activeUsers.get(recipientId);
+
+    io.to(recipientSocket).emit('new_friend_request', {
+      message: `${req.user.name} sent you a friend request!`,
+      requester: {
+        _id: req.user._id,
+        name: req.user.name,
+        photo: req.user.photo,
+      },
+      friendshipId: friendship._id,
+    });
+  }
+
+  await Notification.create({
+    sender: requesterId,
+    recipient: recipientId,
+    type: 'friend_request_received',
+    message: `${req.user.name} sent you a friend request!`,
   });
 
   res.status(201).json({
@@ -79,6 +127,30 @@ exports.acceptRequest = catchAsync(async (req, res, next) => {
       new AppError('Friend request not found or already processed', 404),
     );
   }
+
+  const io = req.app.get('io');
+  const activeUsers = req.app.get('activeUsers');
+
+  if (activeUsers && activeUsers.has(requesterId.toString())) {
+    const requesterSocket = activeUsers.get(requesterId.toString());
+
+    io.to(requesterSocket).emit('friend_request_accepted', {
+      message: `${req.user.name} accepted your friend request!`,
+      friend: {
+        _id: req.user._id,
+        name: req.user.name,
+        photo: req.user.photo,
+      },
+      friendshipId: friendship._id,
+    });
+  }
+
+  await Notification.create({
+    sender: recipientId,
+    recipient: requesterId,
+    type: 'friend_request_accepted',
+    message: `${req.user.name} accepted your friend request!`,
+  });
 
   res.status(200).json({
     status: 'success',

@@ -11,18 +11,27 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        let user = await User.findOne({ googleId: profile.id });
+        let user = await User.findOne({ googleId: profile.id }).setOptions({
+          skipActiveCheck: true,
+        });
 
         if (user) {
+          if (!user.active) {
+            user.active = true;
+            await user.save({ validateBeforeSave: false });
+          }
           return done(null, user);
         }
 
         const email = profile.emails[0].value;
 
-        user = await User.findOne({ email });
+        user = await User.findOne({ email }).setOptions({
+          skipActiveCheck: true,
+        });
 
         if (user) {
           user.googleId = profile.id;
+          user.active = true;
           await user.save({ validateBeforeSave: false });
           return done(null, user);
         }

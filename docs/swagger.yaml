@@ -584,6 +584,50 @@ components:
           type: string
           format: date-time
           example: 2026-03-01T12:00:00.000Z
+    NotificationObject:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 69a586e8ea53dec632215d9f
+        sender:
+          type: object
+          description: Дані користувача, який ініціював подію для сповіщення
+          properties:
+            _id:
+              type: string
+              example: 69a54b910e7a58a05882fc3d
+            name:
+              type: string
+              example: real_taras2
+            photo:
+              type: string
+              example: default.jpg
+        recipient:
+          type: string
+          description: MongoDB ID отримувача сповіщення
+          example: 699450d95d1fa52694992928
+        type:
+          type: string
+          enum: [ friend_request_received, friend_request_accepted ]
+          example: friend_request_received
+        message:
+          type: string
+          example: real_taras2 sent you a friend request!
+        isRead:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-03-02T12:47:36.247Z
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2026-03-02T12:47:36.247Z
+        __v:
+          type: integer
+          example: 0
 tags:
   - name: Users
     description: User management
@@ -599,6 +643,8 @@ tags:
     description: Movie reviews management
   - name: Friends
     description: User friendship management (requests, accepts, rejects)
+  - name: Notifications
+    description: User notifications management (friend requests, movie recommendations)
 
 paths:
   /api/v1/users/auth/google:
@@ -2145,7 +2191,10 @@ paths:
   /api/v1/friends/sendRequest/{userId}:
     post:
       summary: Надіслати запит у друзі
-      description: Надсилає запит у друзі іншому користувачу за його ID. Якщо цей користувач раніше вже надіслав вам запит, дружба приймається автоматично.
+      description: |
+        Надсилає запит у друзі іншому користувачу за його ID. Якщо цей користувач раніше вже надіслав вам запит, дружба приймається автоматично. 
+        **Побічні ефекти:** - Створює запис у колекції Notifications.
+        - Відправляє Socket.IO подію `new_friend_request` (або `friend_request_accepted`), якщо отримувач зараз онлайн.
       tags: [ Friends ]
       security:
         - bearerAuth: [ ]
@@ -2203,7 +2252,11 @@ paths:
   /api/v1/friends/acceptRequest/{userId}:
     patch:
       summary: Прийняти запит у друзі
-      description: Змінює статус вхідного запиту в друзі від вказаного користувача з `pending` на `accepted`. Вимагає авторизації (поточним користувачем має бути отримувач запиту).
+      description: |
+        Змінює статус вхідного запиту в друзі від вказаного користувача з `pending` на `accepted`. Вимагає авторизації.
+        **Побічні ефекти:**
+        - Створює запис у колекції Notifications.
+        - Відправляє Socket.IO подію `friend_request_accepted` ініціатору запиту, якщо він зараз онлайн.
       tags: [ Friends ]
       security:
         - bearerAuth: [ ]
@@ -2391,3 +2444,94 @@ paths:
           description: Unauthorized
         "404":
           description: Not Found
+  /api/v1/notifications:
+    get:
+      summary: Отримати всі сповіщення користувача
+      description: Повертає список сповіщень для поточного авторизованого користувача. Відсортовано за датою створення (від найновіших). Поле `sender` автоматично заповнюється базовою інформацією про відправника (ім'я та фото). Вимагає авторизації.
+      tags: [ Notifications ]
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  results:
+                    type: integer
+                    example: 1
+                  data:
+                    type: object
+                    properties:
+                      notifications:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/NotificationObject'
+        "401":
+          description: Unauthorized
+
+  /api/v1/notifications/readAll:
+    patch:
+      summary: Позначити всі сповіщення як прочитані
+      description: Змінює статус `isRead` на `true` для всіх непрочитаних сповіщень поточного авторизованого користувача. Вимагає авторизації.
+      tags: [ Notifications ]
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: All notifications marked as read
+        "401":
+          description: Unauthorized
+
+  /api/v1/notifications/{id}/read:
+    patch:
+      summary: Позначити сповіщення як прочитане
+      description: Оновлює статус конкретного сповіщення (властивість `isRead` стає `true`). Користувач може оновлювати лише ті сповіщення, де він є отримувачем. Вимагає авторизації.
+      tags: [ Notifications ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: 69a586e8ea53dec632215d9f
+          description: Локальний MongoDB ID самого сповіщення
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      notification:
+                        $ref: '#/components/schemas/NotificationObject'
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+
