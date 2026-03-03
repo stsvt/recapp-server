@@ -1,9 +1,26 @@
 # 🎬 RecApp Backend API
 
+## 🚀 Технологічний стек (Tech Stack)
+
+Проєкт побудований з використанням таких технологій
+
+* **Core:** Node.js, Express.js
+* **Database:** MongoDB, Mongoose
+* **Authentication:** JWT (JSON Web Tokens), Passport.js (Google OAuth 2.0)
+* **Real-time:** Socket.IO
+* **Caching & Optimization:** Redis (для кешування запитів до зовнішніх API)
+* **Security:** Helmet, Express Rate Limit, Data Sanitization (NoSQL injection & XSS protection), CORS
+* **Documentation:** Swagger UI (OpenAPI 3.0)
+* **External APIs:** TMDB API (The Movie Database), SendGrid / Mailtrap (для email-розсилок)
+
+---
+
 ## 🗄️ Архітектура бази даних (ER-діаграма)
 Система побудована на реляційній логіці в рамках NoSQL бази даних MongoDB з використанням проміжних колекцій (зв'язуючих таблиць) для забезпечення консистентності даних.
 
 ![RecApp Database Schema](./recapp.drawio.png)
+
+---
 
 ## ⚙️ Змінні оточення (Environment Variables)
 
@@ -45,7 +62,7 @@ CALLBACK_URL=http://localhost:3000/api/v1/users/auth/google/callback
 # ==========================================
 TMDB_API_KEY=<YOUR_TMDB_API_KEY>
 TMDB_ACCESS_TOKEN=<YOUR_TMDB_ACCESS_TOKEN>
-TMDB_BASIC_URL=[https://api.themoviedb.org/3/](https://api.themoviedb.org/3/)
+TMDB_BASIC_URL=https://api.themoviedb.org/3/
 
 # ==========================================
 # EMAIL (Development - Mailtrap)
