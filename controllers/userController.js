@@ -66,8 +66,9 @@ exports.getAllUsers = catchAsync(async (req, res) => {
     ];
   }
 
-  const users = await User.find(query);
-
+  const users = await User.find(query).select(
+    'name photo description totalWatchTime',
+  );
   res.status(200).json({ status: 'success', data: { users } });
 });
 
@@ -75,6 +76,27 @@ exports.getMe = catchAsync(async (req, res) => {
   const user = await User.findById(req.user.id);
 
   return res.status(200).json({ status: 'success', data: { user } });
+});
+
+exports.getUserById = catchAsync(async (req, res, next) => {
+  if (req.user._id.toString() === req.params.id) {
+    return next(
+      new AppError(
+        'You cannot access your own profile with this route. Please use /me instead.',
+        400,
+      ),
+    );
+  }
+
+  const user = await User.findById(req.params.id).select(
+    'name description photo totalWatchTime',
+  );
+
+  if (!user) {
+    return next(new AppError('No user found with that ID', 404));
+  }
+
+  res.status(200).json({ status: 'success', data: { user } });
 });
 
 exports.updateMe = catchAsync(async (req, res, next) => {

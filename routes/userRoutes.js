@@ -37,5 +37,6 @@ router.patch(
 );
 router.delete('/deleteMe', userController.deleteMe);
 router.get('/', userController.getAllUsers);
+router.get('/:id', userController.getUserById);
 
 module.exports = router;
