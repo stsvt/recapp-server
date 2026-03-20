@@ -173,7 +173,7 @@ exports.rejectRequest = catchAsync(async (req, res, next) => {
     return next(new AppError('Friend request not found', 404));
   }
 
-  res.status(204).json({
+  res.status(200).json({
     status: 'success',
     data: null,
   });
@@ -217,7 +217,7 @@ exports.getIncomingRequests = catchAsync(async (req, res) => {
 });
 
 exports.getMyFriends = catchAsync(async (req, res, next) => {
-  const userId = req.user._id;
+  const userId = req.user._id.toString();
 
   const friendships = await Friendship.find({
     $or: [
