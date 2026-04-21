@@ -2188,24 +2188,29 @@ paths:
         "404":
           description: No movie found with that ID
 
-  /api/v1/friends/sendRequest/{userId}:
+  /api/v1/friends/sendRequest:
     post:
       summary: Надіслати запит у друзі
       description: |
-        Надсилає запит у друзі іншому користувачу за його ID. Якщо цей користувач раніше вже надіслав вам запит, дружба приймається автоматично. 
+        Надсилає запит у друзі іншому користувачу за його ID, переданим у тілі запиту. Якщо цей користувач раніше вже надіслав вам запит, дружба приймається автоматично. 
         **Побічні ефекти:** - Створює запис у колекції Notifications.
         - Відправляє Socket.IO подію `new_friend_request` (або `friend_request_accepted`), якщо отримувач зараз онлайн.
       tags: [ Friends ]
       security:
         - bearerAuth: [ ]
-      parameters:
-        - in: path
-          name: userId
-          required: true
-          schema:
-            type: string
-            example: 699450d95d1fa52694992929
-          description: Локальний MongoDB ID користувача, якому надсилається запит
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+                  example: 699450d95d1fa52694992929
+                  description: Локальний MongoDB ID користувача, якому надсилається запит
       responses:
         "201":
           description: Created
@@ -2249,7 +2254,7 @@ paths:
           description: Unauthorized
         "404":
           description: Not Found
-  /api/v1/friends/acceptRequest/{userId}:
+  /api/v1/friends/acceptRequest:
     patch:
       summary: Прийняти запит у друзі
       description: |
@@ -2260,14 +2265,19 @@ paths:
       tags: [ Friends ]
       security:
         - bearerAuth: [ ]
-      parameters:
-        - in: path
-          name: userId
-          required: true
-          schema:
-            type: string
-            example: 699890f398a5f149e2d2dc73
-          description: Локальний MongoDB ID користувача, який надіслав вам запит
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+                  example: 699890f398a5f149e2d2dc73
+                  description: Локальний MongoDB ID користувача, який надіслав вам запит
       responses:
         "200":
           description: OK
@@ -2291,21 +2301,26 @@ paths:
           description: Unauthorized
         "404":
           description: Not Found
-  /api/v1/friends/rejectRequest/{userId}:
+  /api/v1/friends/rejectRequest:
     delete:
       summary: Відхилити запит у друзі
       description: Видаляє вхідний запит у друзі від вказаного користувача. Працює лише для запитів зі статусом `pending`. Вимагає авторизації (поточним користувачем має бути отримувач запиту).
       tags: [ Friends ]
       security:
         - bearerAuth: [ ]
-      parameters:
-        - in: path
-          name: userId
-          required: true
-          schema:
-            type: string
-            example: 699890f398a5f149e2d2dc73
-          description: Локальний MongoDB ID користувача, який надіслав вам запит
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+                  example: 699890f398a5f149e2d2dc73
+                  description: Локальний MongoDB ID користувача, який надіслав вам запит
       responses:
         "204":
           description: No Content
@@ -2313,21 +2328,26 @@ paths:
           description: Unauthorized
         "404":
           description: Not Found
-  /api/v1/friends/removeFriend/{userId}:
+  /api/v1/friends/removeFriend:
     delete:
       summary: Видалити користувача з друзів
       description: Видаляє існуючу дружбу (статус `accepted`) між поточним користувачем та вказаним користувачем, незалежно від того, хто був ініціатором запиту. Вимагає авторизації.
       tags: [ Friends ]
       security:
         - bearerAuth: [ ]
-      parameters:
-        - in: path
-          name: userId
-          required: true
-          schema:
-            type: string
-            example: 699890f398a5f149e2d2dc73
-          description: Локальний MongoDB ID друга, якого потрібно видалити
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+                  example: 699890f398a5f149e2d2dc73
+                  description: Локальний MongoDB ID друга, якого потрібно видалити
       responses:
         "204":
           description: No Content

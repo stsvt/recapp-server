@@ -3,8 +3,11 @@ const passport = require('passport');
 
 const authController = require('../controllers/authController');
 const userController = require('../controllers/userController');
+const friendRouter = require('./friendRoutes');
 
 const router = express.Router();
+
+router.use('/:userId/friends', friendRouter);
 
 router.get(
   '/auth/google',
