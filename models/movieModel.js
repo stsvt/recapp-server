@@ -15,7 +15,6 @@ const schema = new mongoose.Schema({
   ratingsAverage: {
     type: Number,
     default: 0,
-    set: (value) => Math.round(value * 10) / 10,
   },
   ratingsQuantity: { type: Number, default: 0 },
   likesCount: {
