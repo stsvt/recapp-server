@@ -7,8 +7,6 @@ const friendRouter = require('./friendRoutes');
 
 const router = express.Router();
 
-router.use('/:userId/friends', friendRouter);
-
 router.get(
   '/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] }),
@@ -40,6 +38,8 @@ router.patch(
 );
 router.delete('/deleteMe', userController.deleteMe);
 router.get('/', userController.getAllUsers);
+
+router.use('/:userId/friends', friendRouter);
 router.get('/:id', userController.getUserById);
 
 module.exports = router;

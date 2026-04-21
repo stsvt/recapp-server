@@ -9,9 +9,9 @@ router.use(authController.protect);
 router.get('/', friendController.getMyFriends);
 router.get('/incomingRequests', friendController.getIncomingRequests);
 
-router.post('/sendRequest', friendController.sendRequest);
-router.patch('/acceptRequest', friendController.acceptRequest);
-router.delete('/rejectRequest', friendController.rejectRequest);
-router.delete('/removeFriend', friendController.removeFriend);
+router.post('/', friendController.sendRequest);
+router.patch('/', friendController.acceptRequest);
+router.delete('/', friendController.rejectRequest);
+router.delete('/remove', friendController.removeFriend);
 
 module.exports = router;
