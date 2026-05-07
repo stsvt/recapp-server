@@ -2,7 +2,10 @@ const fs = require('fs');
 const client = require('../utils/redisClient');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
-const { fetchMovieFromTMDB } = require('../utils/tmdbApi');
+const {
+  fetchMovieFromTMDB,
+  fetchPopularMoviesFromTMDB,
+} = require('../utils/tmdbApi');
 
 const genres = JSON.parse(
   fs.readFileSync(`${__dirname}/../data/genres.json`, 'utf-8'),
@@ -92,6 +95,40 @@ exports.getMovieById = catchAsync(async (req, res, next) => {
   } catch (err) {
     return next(new AppError('Something went wrong with fetching movie', 400));
   }
+});
+
+exports.getPopularMovies = catchAsync(async (req, res, next) => {
+  const page = req.query.page || 1;
+
+  const cacheKey = `movies:popular:page:${page}`;
+  const cachedMovies = await client.get(cacheKey);
+
+  if (cachedMovies) {
+    console.log('GETTING from CACHE');
+
+    return res.status(200).json({
+      status: 'success',
+      source: 'cache',
+      data: { movies: JSON.parse(cachedMovies) },
+    });
+  }
+
+  const data = await fetchPopularMoviesFromTMDB(page);
+
+  if (data.results) {
+    data.results = data.results.filter(
+      (movie) => movie.original_language !== 'ru',
+    );
+  }
+
+  await client.setEx(cacheKey, 86400, JSON.stringify(data));
+
+  console.log('Popular movies from TMDB');
+
+  res.status(200).json({
+    status: 'success',
+    data: { movies: data },
+  });
 });
 
 exports.getTopRatedMovies = catchAsync(async (req, res, next) => {

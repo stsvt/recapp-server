@@ -23,6 +23,7 @@ const movieRouter = require('./routes/movieRoutes');
 const activityRouter = require('./routes/activityRoutes');
 const friendRouter = require('./routes/friendRoutes');
 const notificationRouter = require('./routes/notificationRoutes');
+const recommendationRouter = require('./routes/recommendationRoutes');
 
 const app = express();
 
@@ -78,6 +79,7 @@ app.use('/api/v1/movies', movieRouter);
 app.use('/api/v1/activity', activityRouter);
 app.use('/api/v1/friends', friendRouter);
 app.use('/api/v1/notifications', notificationRouter);
+app.use('/api/v1/recommendations', recommendationRouter);
 
 app.use((req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
