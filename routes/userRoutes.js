@@ -3,6 +3,7 @@ const passport = require('passport');
 
 const authController = require('../controllers/authController');
 const userController = require('../controllers/userController');
+const friendRouter = require('./friendRoutes');
 
 const router = express.Router();
 
@@ -37,6 +38,8 @@ router.patch(
 );
 router.delete('/deleteMe', userController.deleteMe);
 router.get('/', userController.getAllUsers);
+
+router.use('/:userId/friends', friendRouter);
 router.get('/:id', userController.getUserById);
 
 module.exports = router;

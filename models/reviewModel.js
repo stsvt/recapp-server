@@ -39,6 +39,14 @@ const schema = new mongoose.Schema(
   },
 );
 
+schema.index(
+  { movie: 1, user: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { active: true },
+  },
+);
+
 schema.pre(/^find/, function () {
   this.populate({
     path: 'user',
@@ -48,6 +56,41 @@ schema.pre(/^find/, function () {
 
 schema.pre(/^find/, function () {
   this.find({ active: { $ne: false } });
+});
+
+schema.statics.calcAverageRatings = async function (movieId) {
+  const stats = await this.aggregate([
+    { $match: { movie: movieId, active: { $ne: false } } },
+    {
+      $group: {
+        _id: '$movie',
+        nRating: { $sum: 1 },
+        avgRating: { $avg: '$rating' },
+      },
+    },
+  ]);
+
+  if (stats.length > 0) {
+    await mongoose.model('Movie').findByIdAndUpdate(movieId, {
+      ratingsQuantity: stats[0].nRating,
+      ratingsAverage: Math.round(stats[0].avgRating * 10) / 10,
+    });
+  } else {
+    await mongoose.model('Movie').findByIdAndUpdate(movieId, {
+      ratingsQuantity: 0,
+      ratingsAverage: 0,
+    });
+  }
+};
+
+schema.post('save', function () {
+  this.constructor.calcAverageRatings(this.movie);
+});
+
+schema.post(/^findOneAnd/, async (doc) => {
+  if (doc) {
+    await doc.constructor.calcAverageRatings(doc.movie);
+  }
 });
 
 const Review = mongoose.model('Review', schema);

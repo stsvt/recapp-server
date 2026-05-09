@@ -76,6 +76,8 @@ const schema = new mongoose.Schema({
   },
 });
 
+schema.index({ passwordResetToken: 1 });
+
 schema.pre('save', async function () {
   if (!this.isModified('password')) return;
 
