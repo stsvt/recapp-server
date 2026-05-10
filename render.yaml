@@ -43,8 +43,7 @@ services:
           property: connectionString
         key: REDIS_CONNECTION_STRING
 
-databases:
+redis:
   - name: recapp-redis
-    type: redis
     plan: free
     maxmemoryPolicy: allkeys-lru
