@@ -44,6 +44,6 @@ services:
         key: REDIS_CONNECTION_STRING
 
 redis:
-  - name: recapp-redis
-    plan: free
-    maxmemoryPolicy: allkeys-lru
+  name: recapp-redis
+  plan: free
+  maxmemoryPolicy: allkeys-lru
