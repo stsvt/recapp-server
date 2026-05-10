@@ -42,9 +42,6 @@ class RecommendationService {
         .join(' ');
     }
 
-    console.log('Genres: ', genreString);
-    console.log('Overview: ', movie.overview);
-    console.log('Title: ', movie.title);
     return `${genreString} ${genreString} ${genreString} ${genreString} ${genreString} ${movie.overview || ''} ${movie.title || ''}`;
   }
 
@@ -78,22 +75,18 @@ class RecommendationService {
     return profileVector;
   }
 
-  static async getPersonalRecommendations(userId) {
+  static async getContentBasedRecommendations(userId) {
     const userActivities = await UserMovieActivity.find({
       user: userId,
       activityType: { $in: ['liked', 'watched'] },
     }).populate('movie');
 
     if (!userActivities || userActivities.length === 0) {
-      console.log('Recommendations from TMDB');
       return await fetchPopularMoviesFromTMDB();
     }
     const userMovies = userActivities.map((activity) => activity.movie);
 
-    // console.log(userMovies);
     const tmdbCandidates = await getCandidatesFor(userMovies.slice(0, 3));
-
-    // console.log('TMDB Candidates: ', tmdbCandidates);
 
     const likedIds = new Set(
       userMovies.map((movie) => movie.id || movie.tmdbId),
@@ -103,32 +96,19 @@ class RecommendationService {
       (movie) => !likedIds.has(movie.id),
     );
 
-    // console.log('NEW CANDIDATES: ', newCandidates);
-    // console.log('User movies: ', userMovies);
     const allMovies = [...userMovies, ...newCandidates];
 
-    console.log('User movies: ', userMovies[0]);
-    console.log('New candidates: ', newCandidates[0]);
     const corpus = allMovies.map((movie) => {
       const soup = this._createFeatureSoup(movie);
       return recommendationUtils.tokenize(soup);
     });
 
-    // console.log('CORPUS', corpus);
     const globalIdf = recommendationUtils.calculateIDF(corpus);
 
-    // console.log('GLOBAL IDF: ', globalIdf);
-    // console.log('Length: ', userMovies.length);
-    // console.log('Corpus length: ', corpus.length);
     const likedVectors = userMovies.map((_, index) => {
-      // console.log('index', index);
-      // console.log('CORPUS INDEX: ', corpus[index]);
       const tf = recommendationUtils.calculateTF(corpus[index]);
-      // console.log('TF', tf);
       return recommendationUtils.vectorizeAndNormalize(tf, globalIdf);
     });
-
-    // console.log('LIKED VECTORS: ', likedVectors);
 
     const userProfileVector = this._buildUserProfileVector(likedVectors);
 
@@ -140,14 +120,12 @@ class RecommendationService {
         tf,
         globalIdf,
       );
-      // console.log('Candidate vector: ', candidateVector);
-      // console.log('User profile vector: ', userProfileVector);
+
       const score = recommendationUtils.getCosineSimilarity(
         userProfileVector,
         candidateVector,
       );
 
-      console.log('SCORE: ', score);
       return {
         movie: candidate,
         score,
@@ -156,11 +134,6 @@ class RecommendationService {
 
     recommendations.sort((a, b) => b.score - a.score);
 
-    console.log(
-      recommendations
-        .slice(0, 10)
-        .map((recommendation) => recommendation.movie),
-    );
     return recommendations
       .slice(0, 10)
       .map((recommendation) => recommendation.movie);

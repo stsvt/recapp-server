@@ -19,7 +19,7 @@ exports.getContentBasedRecommendations = catchAsync(async (req, res, next) => {
   }
 
   const recommendations =
-    await RecommendationService.getPersonalRecommendations(userId);
+    await RecommendationService.getContentBasedRecommendations(userId);
 
   if (!recommendations || recommendations.length === 0) {
     return next(new AppError('No recommendations found for this user', 404));
