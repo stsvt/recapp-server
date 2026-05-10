@@ -1,7 +1,9 @@
 const { createClient } = require('redis');
 
 const redisUrl =
-  process.env.REDIS_CONNECTION_STRING || 'redis://127.0.0.1:6379';
+  process.env.REDIS_URL ||
+  process.env.REDIS_CONNECTION_STRING ||
+  'redis://127.0.0.1:6379';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
