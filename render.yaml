@@ -17,7 +17,7 @@ services:
       - key: JWT_EXPIRES_IN
         value: 90d
       - key: JWT_COOKIE_EXPIRES_IN
-        value: "90"
+        value: '90'
       - key: TMDB_API_KEY
         sync: false
       - key: TMDB_ACCESS_TOKEN
@@ -35,15 +35,16 @@ services:
       - key: GOOGLE_CLIENT_SECRET
         sync: false
       - key: CALLBACK_URL
-        sync: false   # https://<your-server>.onrender.com/api/v1/users/auth/google/callback
+        sync: false # https://<your-server>.onrender.com/api/v1/users/auth/google/callback
       - key: ORIGIN_URL
-        sync: false   # https://<your-client>.onrender.com
-      - fromDatabase:
+        sync: false # https://<your-client>.onrender.com
+      - key: REDIS_CONNECTION_STRING
+        fromDatabase:
           name: recapp-redis
           property: connectionString
-        key: REDIS_CONNECTION_STRING
 
-redis:
-  name: recapp-redis
-  plan: free
-  maxmemoryPolicy: allkeys-lru
+databases:
+  - name: recapp-redis
+    type: redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru

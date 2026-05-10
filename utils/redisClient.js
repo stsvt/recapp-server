@@ -3,7 +3,17 @@ const { createClient } = require('redis');
 const redisUrl =
   process.env.REDIS_CONNECTION_STRING || 'redis://127.0.0.1:6379';
 
-const client = createClient({ url: redisUrl });
+const isProduction = process.env.NODE_ENV === 'production';
+
+const client = createClient({
+  url: redisUrl,
+  socket: isProduction
+    ? {
+        tls: true,
+        rejectUnauthorized: false,
+      }
+    : undefined,
+});
 
 client.on('error', (err) => console.log('Redis Client error', err));
 
