@@ -39,12 +39,13 @@ services:
       - key: ORIGIN_URL
         sync: false # https://<your-client>.onrender.com
       - key: REDIS_CONNECTION_STRING
-        fromDatabase:
+        fromService:
+          type: redis
           name: recapp-redis
           property: connectionString
 
-databases:
-  - name: recapp-redis
-    type: redis
+  - type: redis
+    name: recapp-redis
     plan: free
     maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
