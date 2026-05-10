@@ -7,6 +7,14 @@ const client = createClient({ url: redisUrl });
 
 client.on('error', (err) => console.log('Redis Client error', err));
 
-client.connect().then(() => console.log('Redis connected successfully'));
+client
+  .connect()
+  .then(() => console.log('Redis connected successfully'))
+  .catch((err) => {
+    console.warn(
+      'Redis connection failed — caching disabled:',
+      err.message,
+    );
+  });
 
 module.exports = client;
