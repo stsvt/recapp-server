@@ -13,6 +13,7 @@ const calculateUserMeans = (rating) => {
   });
   return means;
 };
+exports.calculateUserMeans = calculateUserMeans;
 
 const calculatePearsonCorrelation = (movieA, movieB, vectors) => {
   const vecA = vectors[movieA];
