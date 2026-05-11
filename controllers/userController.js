@@ -1,6 +1,8 @@
 const multer = require('multer');
 const sharp = require('sharp');
+const mongoose = require('mongoose');
 const User = require('../models/userModel');
+const redisClient = require('../utils/redisClient');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
@@ -134,3 +136,21 @@ exports.deleteMe = catchAsync(async (req, res) => {
 
   res.status(204).json({ status: 'success', data: null });
 });
+
+exports.healthCheck = (req, res) => {
+  const mongoStatus =
+    mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  const redisStatus = redisClient.isOpen ? 'connected' : 'disconnected';
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      status: 'UP',
+      timestamp: new Date().toISOString(),
+      services: {
+        database: mongoStatus,
+        redis: redisStatus,
+      },
+    },
+  });
+};
