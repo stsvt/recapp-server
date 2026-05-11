@@ -2,7 +2,9 @@ const Review = require('../models/reviewModel');
 const Movie = require('../models/movieModel');
 const {
   getRecommendationsForMovie,
-} = require('../services/collaborationFilteringService');
+  calculateUserMeans,
+} = require('../services/itemBasedService');
+const { getUserRecommendations } = require('../services/userBasedService');
 
 async function getRatingsData() {
   const reviews = await Review.find({ rating: { $exists: true } })
@@ -21,7 +23,7 @@ async function getRatingsData() {
 
 exports.getSimilarMovies = async (req, res) => {
   try {
-    const { id: targetMovieId } = req.params;
+    const { movieId: targetMovieId } = req.query;
 
     const allRatings = await getRatingsData();
 
@@ -67,6 +69,59 @@ exports.getSimilarMovies = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Не вдалось отримати рекомендації',
+    });
+  }
+};
+
+exports.getPersonalizedRecommendations = async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    const allRatings = await getRatingsData();
+    const userMeans = calculateUserMeans(allRatings);
+
+    const recommendations = await getUserRecommendations(
+      userId,
+      allRatings,
+      userMeans,
+    );
+
+    if (!recommendations || recommendations.length === 0) {
+      return res.status(200).json({
+        status: 'success',
+        data: { recommendations: { results: [] } },
+      });
+    }
+    const topRecommendations = recommendations.slice(0, 15);
+
+    const enrichedResults = await Promise.all(
+      topRecommendations.map(async (rec) => {
+        const movie = await Movie.findOne({ tmdbId: rec.movieId }).select(
+          'tmdbId title posterPath releaseDate genres ratingsAverage',
+        );
+
+        if (!movie) return null;
+
+        return {
+          ...movie.toObject(),
+          predictedRating: rec.prediction,
+        };
+      }),
+    );
+
+    const finalData = enrichedResults.filter((movie) => movie !== null);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        recommendations: { results: finalData },
+      },
+    });
+  } catch (err) {
+    console.error('Помилка User-based системи:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Не вдалось отримати персональні рекомендації',
     });
   }
 };
