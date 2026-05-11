@@ -6,10 +6,12 @@ const redisUrl =
   'redis://127.0.0.1:6379';
 
 const isProduction = process.env.NODE_ENV === 'production';
+const isLocalhost = redisUrl.includes('127.0.0.1') || redisUrl.includes('localhost');
+const useTLS = isProduction && !isLocalhost;
 
 const client = createClient({
-  url: redisUrl,
-  socket: isProduction
+  url: useTLS ? redisUrl.replace(/^redis:\/\//, 'rediss://') : redisUrl,
+  socket: useTLS
     ? {
         tls: true,
         rejectUnauthorized: false,
