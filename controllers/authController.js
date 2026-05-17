@@ -95,7 +95,12 @@ exports.signup = catchAsync(async (req, res) => {
   });
 
   const url = `${process.env.ORIGIN_URL}/me`;
-  await new Email(newUser, url).sendWelcome();
+  
+  try {
+    await new Email(newUser, url).sendWelcome();
+  } catch (err) {
+    console.error('There was an error sending the welcome email:', err);
+  }
 
   createSendToken(newUser, 201, res);
 });
