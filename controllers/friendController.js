@@ -245,3 +245,18 @@ exports.getMyFriends = catchAsync(async (req, res, next) => {
     data: { friends },
   });
 });
+
+exports.getOutgoingRequests = catchAsync(async (req, res) => {
+  const userId = req.user._id;
+
+  const requests = await Friendship.find({
+    requester: userId,
+    status: 'pending',
+  }).populate('recipient', 'name email photo');
+
+  res.status(200).json({
+    status: 'success',
+    results: requests.length,
+    data: { requests },
+  });
+});

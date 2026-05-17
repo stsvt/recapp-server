@@ -8,6 +8,7 @@ router.use(authController.protect);
 
 router.get('/', friendController.getMyFriends);
 router.get('/incomingRequests', friendController.getIncomingRequests);
+router.get('/outgoingRequests', friendController.getOutgoingRequests);
 
 router.post('/', friendController.sendRequest);
 router.patch('/', friendController.acceptRequest);
