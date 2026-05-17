@@ -94,8 +94,8 @@ exports.signup = catchAsync(async (req, res) => {
     confirmPassword: req.body.confirmPassword,
   });
 
-  const url = `${process.env.ORIGIN_URL}/me`;
-  
+  const url = `${process.env.ORIGIN_URL}/login`;
+
   try {
     await new Email(newUser, url).sendWelcome();
   } catch (err) {
