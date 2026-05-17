@@ -81,10 +81,13 @@ class RecommendationService {
       activityType: { $in: ['liked', 'watched'] },
     }).populate('movie');
 
-    if (!userActivities || userActivities.length === 0) {
+    const userMovies = userActivities
+      .map((activity) => activity.movie)
+      .filter((movie) => movie);
+
+    if (userMovies.length === 0) {
       return await fetchPopularMoviesFromTMDB();
     }
-    const userMovies = userActivities.map((activity) => activity.movie);
 
     const tmdbCandidates = await getCandidatesFor(userMovies.slice(0, 3));
 

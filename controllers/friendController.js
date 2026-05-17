@@ -232,12 +232,15 @@ exports.getMyFriends = catchAsync(async (req, res, next) => {
     return next(new AppError('Send friendship request to somebody', 404));
   }
 
-  const friends = friendships.map((friendship) => {
-    if (friendship.requester._id.toString() === userId) {
-      return friendship.recipient;
-    }
-    return friendship.requester;
-  });
+  const friends = friendships
+    .map((friendship) => {
+      if (!friendship.requester || !friendship.recipient) return null;
+      if (friendship.requester._id.toString() === userId) {
+        return friendship.recipient;
+      }
+      return friendship.requester;
+    })
+    .filter((friend) => friend !== null);
 
   res.status(200).json({
     status: 'success',
