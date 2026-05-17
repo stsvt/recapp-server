@@ -97,6 +97,49 @@ exports.getMovieById = catchAsync(async (req, res, next) => {
   }
 });
 
+exports.getGuestRecommendations = catchAsync(async (req, res, next) => {
+  const page = req.query.page || 1;
+
+  const cacheKey = `movies:guest:page:${page}`;
+  const cachedMovies = await client.get(cacheKey);
+
+  if (cachedMovies) {
+    console.log('GETTING trending movies from CACHE');
+    return res.status(200).json({
+      status: 'success',
+      source: 'cache',
+      data: { movies: JSON.parse(cachedMovies) },
+    });
+  }
+
+  const url = `${process.env.TMDB_BASIC_URL}trending/movie/week?language=uk-UA&page=${page}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}` },
+  });
+
+  if (!response.ok) {
+    return next(new AppError('Failed to fetch trending movies', 400));
+  }
+
+  const data = await response.json();
+
+  if (data.results) {
+    data.results = data.results.filter(
+      (movie) => movie.original_language !== 'ru',
+    );
+  }
+
+  await client.setEx(cacheKey, 86400, JSON.stringify(data));
+
+  console.log('GETTING trending movies from TMDB');
+  res.status(200).json({
+    status: 'success',
+    data: { movies: data },
+  });
+});
+
 exports.getPopularMovies = catchAsync(async (req, res, next) => {
   const page = req.query.page || 1;
 
