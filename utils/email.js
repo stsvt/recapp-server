@@ -11,17 +11,6 @@ module.exports = class Email {
   }
 
   newTransport() {
-    if (process.env.NODE_ENV === 'production') {
-      return nodemailer.createTransport({
-        host: 'smtp.sendgrid.net',
-        port: 587,
-        auth: {
-          user: process.env.SENDGRID_USERNAME || 'apikey',
-          pass: process.env.SENDGRID_PASSWORD,
-        },
-      });
-    }
-
     return nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT,
@@ -38,6 +27,32 @@ module.exports = class Email {
       url: this.url,
       subject,
     });
+
+    if (process.env.NODE_ENV === 'production') {
+      const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.SENDGRID_PASSWORD}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          personalizations: [{ to: [{ email: this.to }] }],
+          from: { email: process.env.EMAIL_FROM, name: 'RecApp Team' },
+          subject: subject,
+          content: [
+            { type: 'text/plain', value: convert(html) },
+            { type: 'text/html', value: html }
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error('SendGrid API Error:', errText);
+        throw new Error('Failed to send email via SendGrid API');
+      }
+      return;
+    }
 
     const mailOptions = {
       from: this.from,
