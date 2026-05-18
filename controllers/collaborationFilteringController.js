@@ -5,6 +5,8 @@ const {
   calculateUserMeans,
 } = require('../services/itemBasedService');
 const { getUserRecommendations } = require('../services/userBasedService');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
 
 async function getRatingsData() {
   const reviews = await Review.find({ rating: { $exists: true } })
@@ -21,107 +23,101 @@ async function getRatingsData() {
     }));
 }
 
-exports.getSimilarMovies = async (req, res) => {
-  try {
-    const { movieId: targetMovieId } = req.query;
+exports.getSimilarMovies = catchAsync(async (req, res, next) => {
+  const { movieId: targetMovieId } = req.query;
 
-    const allRatings = await getRatingsData();
+  if (!targetMovieId) {
+    return next(new AppError('Please provide a movieId query parameter', 400));
+  }
 
-    const recommendations = await getRecommendationsForMovie(
-      targetMovieId,
-      allRatings,
-    );
+  const allRatings = await getRatingsData();
 
-    if (!recommendations || recommendations.length === 0) {
-      return res.status(200).json({
-        status: 'success',
-        data: { recommendations: { results: [] } },
-      });
-    }
+  const recommendations = await getRecommendationsForMovie(
+    targetMovieId,
+    allRatings,
+  );
 
-    const topRecommendations = recommendations.slice(0, 15);
-
-    const enrichedResults = await Promise.all(
-      topRecommendations.map(async (rec) => {
-        const movie = await Movie.findOne({ tmdbId: rec.movieId }).select(
-          'tmdbId title posterPath releaseDate genres ratingsAverage',
-        );
-
-        if (!movie) return null;
-
-        return {
-          ...movie.toObject(),
-          similarity: rec.similarity,
-        };
-      }),
-    );
-
-    const finalData = enrichedResults.filter((movie) => movie !== null);
-
-    res.status(200).json({
+  if (!recommendations || recommendations.length === 0) {
+    return res.status(200).json({
       status: 'success',
-      data: {
-        recommendations: { results: finalData },
-      },
-    });
-  } catch (err) {
-    console.error('Помилка рекомендаційної системи:', err);
-    res.status(500).json({
-      status: 'error',
-      message: 'Не вдалось отримати рекомендації',
+      data: { recommendations: { results: [] } },
     });
   }
-};
 
-exports.getPersonalizedRecommendations = async (req, res) => {
-  try {
-    const { userId } = req.query;
+  const topRecommendations = recommendations.slice(0, 15);
 
-    const allRatings = await getRatingsData();
-    const userMeans = calculateUserMeans(allRatings);
+  const enrichedResults = await Promise.all(
+    topRecommendations.map(async (rec) => {
+      const movie = await Movie.findOne({ tmdbId: rec.movieId }).select(
+        'tmdbId title posterPath releaseDate genres ratingsAverage',
+      );
 
-    const recommendations = await getUserRecommendations(
-      userId,
-      allRatings,
-      userMeans,
+      if (!movie) return null;
+
+      return {
+        ...movie.toObject(),
+        similarity: rec.similarity,
+      };
+    }),
+  );
+
+  const finalData = enrichedResults.filter((movie) => movie !== null);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      recommendations: { results: finalData },
+    },
+  });
+});
+
+exports.getPersonalizedRecommendations = catchAsync(async (req, res, next) => {
+  const userId = req.query.userId || (req.user && req.user.id);
+
+  if (!userId) {
+    return next(
+      new AppError('Please provide a userId query parameter or log in', 400),
     );
+  }
 
-    if (!recommendations || recommendations.length === 0) {
-      return res.status(200).json({
-        status: 'success',
-        data: { recommendations: { results: [] } },
-      });
-    }
-    const topRecommendations = recommendations.slice(0, 15);
+  const allRatings = await getRatingsData();
+  const userMeans = calculateUserMeans(allRatings);
 
-    const enrichedResults = await Promise.all(
-      topRecommendations.map(async (rec) => {
-        const movie = await Movie.findOne({ tmdbId: rec.movieId }).select(
-          'tmdbId title posterPath releaseDate genres ratingsAverage',
-        );
+  const recommendations = await getUserRecommendations(
+    userId,
+    allRatings,
+    userMeans,
+  );
 
-        if (!movie) return null;
-
-        return {
-          ...movie.toObject(),
-          predictedRating: rec.prediction,
-        };
-      }),
-    );
-
-    const finalData = enrichedResults.filter((movie) => movie !== null);
-
-    res.status(200).json({
+  if (!recommendations || recommendations.length === 0) {
+    return res.status(200).json({
       status: 'success',
-      data: {
-        recommendations: { results: finalData },
-      },
-    });
-  } catch (err) {
-    console.error('Помилка User-based системи:', err);
-    res.status(500).json({
-      status: 'error',
-      message: 'Не вдалось отримати персональні рекомендації',
+      data: { recommendations: { results: [] } },
     });
   }
-};
+  const topRecommendations = recommendations.slice(0, 15);
+
+  const enrichedResults = await Promise.all(
+    topRecommendations.map(async (rec) => {
+      const movie = await Movie.findOne({ tmdbId: rec.movieId }).select(
+        'tmdbId title posterPath releaseDate genres ratingsAverage',
+      );
+
+      if (!movie) return null;
+
+      return {
+        ...movie.toObject(),
+        predictedRating: rec.prediction,
+      };
+    }),
+  );
+
+  const finalData = enrichedResults.filter((movie) => movie !== null);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      recommendations: { results: finalData },
+    },
+  });
+});
